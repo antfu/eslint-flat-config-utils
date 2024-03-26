@@ -48,7 +48,7 @@ import { mergeConfigs } from './merge'
  * // And you an directly return the pipeline object to `eslint.config.mjs`
  * ```
  */
-export function pipe(...configs: Awaitable<FlatConfigItem | FlatConfigItem[]>[]) {
+export function pipe(...configs: Awaitable<FlatConfigItem | FlatConfigItem[]>[]): FlatConfigPipeline<FlatConfigItem> {
   return new FlatConfigPipeline().append(...configs)
 }
 
@@ -71,7 +71,7 @@ export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> exten
    *
    * This will runs after all config items are resolved. Applies to `plugins` and `rules`.
    */
-  public renamePlugins(renames: Record<string, string>) {
+  public renamePlugins(renames: Record<string, string>): this {
     Object.assign(this._renames, renames)
     return this
   }
@@ -117,7 +117,7 @@ export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> exten
   /**
    * Insert configs after a specific config.
    */
-  public insertAfter(nameOrIndex: string | number, ...items: Awaitable<T | T[]>[]) {
+  public insertAfter(nameOrIndex: string | number, ...items: Awaitable<T | T[]>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -133,7 +133,7 @@ export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> exten
    *
    * It will be merged with the original config, or provide a custom function to replace the config entirely.
    */
-  public override(nameOrIndex: string | number, config: T | ((config: T) => Awaitable<T>)) {
+  public override(nameOrIndex: string | number, config: T | ((config: T) => Awaitable<T>)): this {
     this._operationsPost.push(async (configs) => {
       const index = getConfigIndex(configs, nameOrIndex)
       const extended = typeof config === 'function'
@@ -150,7 +150,7 @@ export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> exten
    *
    * Same as calling `override` multiple times.
    */
-  public overrides(overrides: Record<string | number, T | ((config: T) => Awaitable<T>)>) {
+  public overrides(overrides: Record<string | number, T | ((config: T) => Awaitable<T>)>): this {
     for (const [name, config] of Object.entries(overrides))
       this.override(name, config)
     return this
@@ -172,21 +172,24 @@ export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> exten
     return configs
   }
 
+  // eslint-disable-next-line ts/explicit-function-return-type
   then(onFulfilled: (value: T[]) => any, onRejected?: (reason: any) => any) {
     return this.toConfigs()
       .then(onFulfilled, onRejected)
   }
 
+  // eslint-disable-next-line ts/explicit-function-return-type
   catch(onRejected: (reason: any) => any) {
     return this.toConfigs().catch(onRejected)
   }
 
+  // eslint-disable-next-line ts/explicit-function-return-type
   finally(onFinally: () => any) {
     return this.toConfigs().finally(onFinally)
   }
 }
 
-function getConfigIndex(configs: FlatConfigItem[], nameOrIndex: string | number) {
+function getConfigIndex(configs: FlatConfigItem[], nameOrIndex: string | number): number {
   if (typeof nameOrIndex === 'number') {
     if (nameOrIndex < 0 || nameOrIndex >= configs.length)
       throw new Error(`ESLintFlatConfigUtils: Failed to locate config at index ${nameOrIndex}\n(${configs.length} configs in total)`)
