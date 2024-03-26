@@ -33,6 +33,9 @@ importers:
       esno:
         specifier: ^4.0.0
         version: 4.0.0
+      jsr:
+        specifier: ^0.12.1
+        version: 0.12.1
       lint-staged:
         specifier: ^15.2.2
         version: 15.2.2
@@ -3162,9 +3165,21 @@ packages:
       graceful-fs: 4.2.10
     dev: true
 
+  /jsr@0.12.1:
+    resolution: {integrity: sha512-qekys430nNcIFD+mRDjzS6OOnWb6kjHZCvkt2awJhmM7agC3evMxWayHxDzUKnpERYZG6c+0OmyDZuZ+xOwNPw==}
+    hasBin: true
+    dependencies:
+      kolorist: 1.8.0
+      node-stream-zip: 1.15.0
+    dev: true
+
   /kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
+    dev: true
+
+  /kolorist@1.8.0:
+    resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
     dev: true
 
   /levn@0.4.1:
@@ -3481,6 +3496,11 @@ packages:
 
   /node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
+    dev: true
+
+  /node-stream-zip@1.15.0:
+    resolution: {integrity: sha512-LN4fydt9TqhZhThkZIVQnF9cwjU3qmUH9h78Mx/K7d3VvfRqqwthLwJEUOEL0QPZ0XQmNN7be5Ggit5+4dq3Bw==}
+    engines: {node: '>=0.12.0'}
     dev: true
 
   /normalize-package-data@2.5.0:

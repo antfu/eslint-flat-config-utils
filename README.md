@@ -8,6 +8,23 @@
 
 Utils for managing and manipulating ESLint flat config arrays
 
+[Documentation](https://jsr.io/@antfu/eslint-flat-config-utils/doc)
+
+## Install
+
+```bash
+npm i eslint-flat-config-utils
+```
+
+```ts
+// eslint.config.mjs
+import { conact, defineFlatConfig, renamePluginsInConfigs } from 'eslint-flat-config-utils'
+
+export default conact(
+  // configs...
+)
+```
+
 ## Sponsors
 
 <p align="center">

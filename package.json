@@ -13,7 +13,10 @@
     "url": "git+https://github.com/antfu/eslint-flat-config-utils.git"
   },
   "bugs": "https://github.com/antfu/eslint-flat-config-utils/issues",
-  "keywords": [],
+  "keywords": [
+    "eslint",
+    "eslint-flat-config"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {
@@ -41,7 +44,7 @@
     "dev": "unbuild --stub",
     "lint": "eslint .",
     "prepublishOnly": "nr build",
-    "release": "bumpp && npm publish",
+    "release": "bumpp && npm publish && npx jsr publish --allow-slow-types",
     "start": "esno src/index.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
@@ -58,6 +61,7 @@
     "bumpp": "^9.3.0",
     "eslint": "^8.56.0",
     "esno": "^4.0.0",
+    "jsr": "^0.12.1",
     "lint-staged": "^15.2.2",
     "pnpm": "^8.15.3",
     "rimraf": "^5.0.5",
