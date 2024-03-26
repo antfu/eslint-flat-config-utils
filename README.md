@@ -16,13 +16,87 @@ Utils for managing and manipulating ESLint flat config arrays
 npm i eslint-flat-config-utils
 ```
 
+## Utils
+
+Most of the descriptions are written in JSDoc, you can find more details in the [documentation](https://jsr.io/@antfu/eslint-flat-config-utils/doc) via JSR.
+
+Here listing a few highlighted ones:
+
+### `concat`
+
+Concatenate multiple ESLint flat configs into one, resolve the promises, and flatten the array.
+
 ```ts
 // eslint.config.mjs
-import { conact, defineFlatConfig, renamePluginsInConfigs } from 'eslint-flat-config-utils'
+import { conact } from 'eslint-flat-config-utils'
 
 export default conact(
-  // configs...
+  {
+    plugins: {},
+    rules: {},
+  },
+  // It can also takes a array of configs:
+  [
+    {
+      plugins: {},
+      rules: {},
+    }
+    // ...
+  ],
+  // Or promises:
+  Promise.resolve({
+    files: ['*.ts'],
+    rules: {},
+  })
+  // ...
 )
+```
+
+### `pipe`
+
+Create a chainable pipeline object that makes manipulating ESLint flat config easier.
+
+It extends Promise, so that you can directly await or export it to `eslint.config.mjs`
+
+```ts
+// eslint.config.mjs
+import { pipe } from 'eslint-flat-config-utils'
+
+export default pipe(
+  {
+    plugins: {},
+    rules: {},
+  }
+  // ...some configs, accepts same arguments as `concat`
+)
+  .append(
+    // appends more configs at the end, accepts same arguments as `concat`
+  )
+  .prepend(
+    // prepends more configs at the beginning, accepts same arguments as `concat`
+  )
+  .insertAfter(
+    'config-name', // specify the name of the target config, or index
+    // insert more configs after the target, accepts same arguments as `concat`
+  )
+  .renamePlugins({
+    // rename plugins
+    'old-name': 'new-name',
+    // for example, rename `n` from `eslint-plugin-n` to more a explicit prefix `node`
+    'n': 'node'
+    // applies to all plugins and rules in the configs
+  })
+  .override(
+    'config-name', // specify the name of the target config, or index
+    {
+      // merge with the target config
+      rules: {
+        'no-console': 'off'
+      },
+    }
+  )
+
+// And you an directly return the pipeline object to `eslint.config.mjs`
 ```
 
 ## Sponsors
