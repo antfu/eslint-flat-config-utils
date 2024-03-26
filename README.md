@@ -28,9 +28,9 @@ Concatenate multiple ESLint flat configs into one, resolve the promises, and fla
 
 ```ts
 // eslint.config.mjs
-import { conact } from 'eslint-flat-config-utils'
+import { concat } from 'eslint-flat-config-utils'
 
-export default conact(
+export default concat(
   {
     plugins: {},
     rules: {},
