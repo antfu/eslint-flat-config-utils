@@ -40,7 +40,7 @@ export function mergeConfigs(...configs: FlatConfigItem[]): FlatConfigItem {
   }, {} as FlatConfigItem)
 
   // Remove unused keys
-  for (const key of keys) {
+  for (const key of Object.keys(merged)) {
     if (!keys.has(key))
       delete (merged as any)[key]
   }
