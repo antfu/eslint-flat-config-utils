@@ -60,7 +60,7 @@ export function pipe<T extends FlatConfigItem = FlatConfigItem>(
  *
  * You don't need to use this class directly.
  */
-export class FlatConfigPipeline<T extends FlatConfigItem = FlatConfigItem> extends Promise<T[]> {
+export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsPost: ((items: T[]) => Promise<T[]>)[] = []
   private _renames: Record<string, string> = {}
