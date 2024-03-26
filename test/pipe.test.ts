@@ -54,6 +54,33 @@ it('operations', async () => {
   `)
 })
 
+it('onResolved', async () => {
+  const p = pipe([{ name: 'init' }])
+    .append({ name: 'append' })
+    .onResolved((configs) => {
+      return [
+        ...configs,
+        ...configs,
+      ]
+    })
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+      },
+      {
+        "name": "append",
+      },
+      {
+        "name": "init",
+      },
+      {
+        "name": "append",
+      },
+    ]
+  `)
+})
+
 describe('error', () => {
   it('error in config', async () => {
     const p = pipe([{ name: 'init' }])

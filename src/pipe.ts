@@ -59,9 +59,10 @@ export function pipe<T extends FlatConfigItem = FlatConfigItem>(
  *
  * You don't need to use this class directly.
  */
-export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promise<T[]> {
+export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames extends string = string> extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
-  private _operationsPost: ((items: T[]) => Promise<T[]>)[] = []
+  private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
+  private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
   private _renames: Record<string, string> = {}
 
   constructor() {
@@ -105,7 +106,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promi
   /**
    * Insert configs before a specific config.
    */
-  public insertBefore(nameOrIndex: string | number, ...items: Awaitable<T | T[]>[]): this {
+  public insertBefore(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -119,7 +120,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promi
   /**
    * Insert configs after a specific config.
    */
-  public insertAfter(nameOrIndex: string | number, ...items: Awaitable<T | T[]>[]): this {
+  public insertAfter(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -135,8 +136,8 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promi
    *
    * It will be merged with the original config, or provide a custom function to replace the config entirely.
    */
-  public override(nameOrIndex: string | number, config: T | ((config: T) => Awaitable<T>)): this {
-    this._operationsPost.push(async (configs) => {
+  public override(nameOrIndex: ConfigNames | string | number, config: T | ((config: T) => Awaitable<T>)): this {
+    this._operationsOverrides.push(async (configs) => {
       const index = getConfigIndex(configs, nameOrIndex)
       const extended = typeof config === 'function'
         ? await config(configs[index])
@@ -152,9 +153,47 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promi
    *
    * Same as calling `override` multiple times.
    */
-  public overrides(overrides: Record<string | number, T | ((config: T) => Awaitable<T>)>): this {
+  public overrides(overrides: Record<ConfigNames | string | number, T | ((config: T) => Awaitable<T>)>): this {
     for (const [name, config] of Object.entries(overrides))
       this.override(name, config)
+    return this
+  }
+
+  /**
+   * Remove a specific config by name or index.
+   */
+  public remove(nameOrIndex: ConfigNames | string | number): this {
+    this._operations.push(async (configs) => {
+      const index = getConfigIndex(configs, nameOrIndex)
+      configs.splice(index, 1)
+      return configs
+    })
+    return this
+  }
+
+  /**
+   * Replace a specific config by name or index.
+   *
+   * The original config will be removed and replaced with the new one.
+   */
+  public replace(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
+    const promise = Promise.all(items)
+    this._operations.push(async (configs) => {
+      const resolved = (await promise).flat() as T[]
+      const index = getConfigIndex(configs, nameOrIndex)
+      configs.splice(index, 1, ...resolved)
+      return configs
+    })
+    return this
+  }
+
+  /**
+   * Hook when all configs are resolved but before returning the final configs.
+   *
+   * You can modify the final configs here.
+   */
+  public onResolved(callback: (configs: T[]) => Awaitable<T[] | void>): this {
+    this._operationsResolved.push(callback)
     return this
   }
 
@@ -167,10 +206,14 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem> extends Promi
     let configs: T[] = []
     for (const promise of this._operations)
       configs = await promise(configs)
-    for (const promise of this._operationsPost)
+    for (const promise of this._operationsOverrides)
       configs = await promise(configs)
 
     configs = renamePluginsInConfigs(configs, this._renames) as T[]
+
+    for (const promise of this._operationsResolved)
+      configs = await promise(configs) || configs
+
     return configs
   }
 
