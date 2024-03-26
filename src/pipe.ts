@@ -1,5 +1,4 @@
-import type { Arrayable } from 'vitest'
-import type { Awaitable, FlatConfigItem } from './types'
+import type { Arrayable, Awaitable, FlatConfigItem } from './types'
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
