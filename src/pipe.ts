@@ -1,3 +1,4 @@
+import type { Arrayable } from 'vitest'
 import type { Awaitable, FlatConfigItem } from './types'
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
@@ -48,8 +49,10 @@ import { mergeConfigs } from './merge'
  * // And you an directly return the pipeline object to `eslint.config.mjs`
  * ```
  */
-export function pipe(...configs: Awaitable<FlatConfigItem | FlatConfigItem[]>[]): FlatConfigPipeline<FlatConfigItem> {
-  return new FlatConfigPipeline().append(...configs)
+export function pipe<T extends FlatConfigItem = FlatConfigItem>(
+  ...configs: Awaitable<Arrayable<FlatConfigItem extends T ? T : FlatConfigItem>>[]
+): FlatConfigPipeline<FlatConfigItem extends T ? T : FlatConfigItem> {
+  return new FlatConfigPipeline().append(...configs) as any
 }
 
 /**

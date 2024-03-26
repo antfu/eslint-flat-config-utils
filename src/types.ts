@@ -13,3 +13,8 @@ export interface FlatConfigItem extends Linter.FlatConfig {
  * A type that can be awaited. Promise<T> or T.
  */
 export type Awaitable<T> = T | Promise<T>
+
+/**
+ * A type that can be an array or a single item.
+ */
+export type Arrayable<T> = T | T[]

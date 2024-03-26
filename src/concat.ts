@@ -20,7 +20,7 @@ import type { Awaitable, FlatConfigItem } from './types'
  * )
  * ```
  */
-export async function concat(...configs: Awaitable<FlatConfigItem | FlatConfigItem[]>[]): Promise<FlatConfigItem[]> {
+export async function concat<T extends FlatConfigItem = FlatConfigItem>(...configs: Awaitable<T | T[]>[]): Promise<T[]> {
   const resolved = await Promise.all(configs)
-  return resolved.flat()
+  return resolved.flat() as T[]
 }

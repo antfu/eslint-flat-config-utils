@@ -45,7 +45,7 @@ export function renamePluginsInRules(rules: Record<string, any>, map: Record<str
  * })
  * ```
  */
-export function renamePluginsInConfigs(configs: FlatConfigItem[], map: Record<string, string>): FlatConfigItem[] {
+export function renamePluginsInConfigs<T extends FlatConfigItem = FlatConfigItem>(configs: T[], map: Record<string, string>): T[] {
   return configs.map((i) => {
     const clone = { ...i }
     if (clone.rules)

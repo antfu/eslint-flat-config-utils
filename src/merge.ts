@@ -6,7 +6,7 @@ import type { FlatConfigItem } from './types'
  * Note there is no guarantee that the result works the same as the original configs.
  */
 
-export function mergeConfigs(...configs: FlatConfigItem[]): FlatConfigItem {
+export function mergeConfigs<T extends FlatConfigItem = FlatConfigItem>(...configs: T[]): T {
   const keys = new Set(configs.flatMap(i => Object.keys(i)))
   const merged = configs.reduce((acc, cur) => {
     return {
@@ -37,7 +37,7 @@ export function mergeConfigs(...configs: FlatConfigItem[]): FlatConfigItem {
         ...cur.linterOptions,
       },
     }
-  }, {} as FlatConfigItem)
+  }, {} as T)
 
   // Remove unused keys
   for (const key of Object.keys(merged)) {
@@ -45,5 +45,5 @@ export function mergeConfigs(...configs: FlatConfigItem[]): FlatConfigItem {
       delete (merged as any)[key]
   }
 
-  return merged
+  return merged as T
 }
