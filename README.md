@@ -96,7 +96,7 @@ export default pipe(
     }
   )
 
-// And you an directly return the pipeline object to `eslint.config.mjs`
+// And you can directly return the pipeline object to `eslint.config.mjs`
 ```
 
 ## Sponsors
