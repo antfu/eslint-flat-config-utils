@@ -82,7 +82,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Append configs to the end of the current configs array.
    */
-  public append(...items: Awaitable<T | T[]>[]): this {
+  public append(...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -94,7 +94,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Prepend configs to the beginning of the current configs array.
    */
-  public prepend(...items: Awaitable<T | T[]>[]): this {
+  public prepend(...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -106,7 +106,10 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Insert configs before a specific config.
    */
-  public insertBefore(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
+  public insertBefore(
+    nameOrIndex: ConfigNames | string | number,
+    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+  ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -120,7 +123,10 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Insert configs after a specific config.
    */
-  public insertAfter(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
+  public insertAfter(
+    nameOrIndex: ConfigNames | string | number,
+    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+  ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -136,7 +142,10 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    *
    * It will be merged with the original config, or provide a custom function to replace the config entirely.
    */
-  public override(nameOrIndex: ConfigNames | string | number, config: T | ((config: T) => Awaitable<T>)): this {
+  public override(
+    nameOrIndex: ConfigNames | string | number,
+    config: T | ((config: T) => Awaitable<T>),
+  ): this {
     this._operationsOverrides.push(async (configs) => {
       const index = getConfigIndex(configs, nameOrIndex)
       const extended = typeof config === 'function'
@@ -153,7 +162,9 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    *
    * Same as calling `override` multiple times.
    */
-  public overrides(overrides: Record<ConfigNames | string | number, T | ((config: T) => Awaitable<T>)>): this {
+  public overrides(
+    overrides: Record<ConfigNames | string | number, T | ((config: T) => Awaitable<T>)>,
+  ): this {
     for (const [name, config] of Object.entries(overrides))
       this.override(name, config)
     return this
@@ -176,7 +187,10 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    *
    * The original config will be removed and replaced with the new one.
    */
-  public replace(nameOrIndex: ConfigNames | string | number, ...items: Awaitable<T | T[]>[]): this {
+  public replace(
+    nameOrIndex: ConfigNames | string | number,
+    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+  ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
