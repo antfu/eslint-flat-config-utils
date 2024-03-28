@@ -3,6 +3,13 @@ import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
 /**
+ * Awaitable array of ESLint flat configs or a pipeline object.
+ */
+export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
+  | Awaitable<Arrayable<T>>
+  | Awaitable<FlatConfigItem[]>
+
+/**
  * Create a chainable pipeline object that makes manipulating ESLint flat config easier.
  *
  * It extends Promise, so that you can directly await or export it to `eslint.config.mjs`
@@ -49,9 +56,10 @@ import { mergeConfigs } from './merge'
  * ```
  */
 export function pipe<T extends FlatConfigItem = FlatConfigItem>(
-  ...configs: Awaitable<Arrayable<FlatConfigItem extends T ? T : FlatConfigItem>>[]
+  ...configs: ResolvableFlatConfig<FlatConfigItem extends T ? T : FlatConfigItem>[]
 ): FlatConfigPipeline<FlatConfigItem extends T ? T : FlatConfigItem> {
-  return new FlatConfigPipeline().append(...configs) as any
+  return new FlatConfigPipeline<FlatConfigItem extends T ? T : FlatConfigItem>()
+    .append(...configs)
 }
 
 /**
@@ -82,7 +90,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Append configs to the end of the current configs array.
    */
-  public append(...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]): this {
+  public append(...items: ResolvableFlatConfig<T>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -94,7 +102,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
   /**
    * Prepend configs to the beginning of the current configs array.
    */
-  public prepend(...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]): this {
+  public prepend(...items: ResolvableFlatConfig<T>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat() as T[]
@@ -108,7 +116,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    */
   public insertBefore(
     nameOrIndex: ConfigNames | string | number,
-    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+    ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
@@ -125,7 +133,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    */
   public insertAfter(
     nameOrIndex: ConfigNames | string | number,
-    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+    ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
@@ -189,7 +197,7 @@ export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames e
    */
   public replace(
     nameOrIndex: ConfigNames | string | number,
-    ...items: Awaitable<T | T[] | FlatConfigPipeline<T>>[]
+    ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
