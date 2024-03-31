@@ -99,6 +99,21 @@ export default composer(
 // And you can directly return the composer object to `eslint.config.mjs`
 ```
 
+### `extend`
+
+Extend another flat config from a different root, and rewrite the glob paths accordingly:
+
+```ts
+import { extend } from 'eslint-flat-config-utils'
+
+export default [
+  ...await extend(
+    import('./sub-package/eslint.config.mjs'),
+    './sub-package/'
+  )
+]
+```
+
 ## Sponsors
 
 <p align="center">
