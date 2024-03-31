@@ -52,17 +52,17 @@ export default concat(
 )
 ```
 
-### `pipe`
+### `composer`
 
-Create a chainable pipeline object that makes manipulating ESLint flat config easier.
+Create a chainable composer that makes manipulating ESLint flat config easier.
 
 It extends Promise, so that you can directly await or export it to `eslint.config.mjs`
 
 ```ts
 // eslint.config.mjs
-import { pipe } from 'eslint-flat-config-utils'
+import { composer } from 'eslint-flat-config-utils'
 
-export default pipe(
+export default composer(
   {
     plugins: {},
     rules: {},
@@ -96,7 +96,7 @@ export default pipe(
     }
   )
 
-// And you can directly return the pipeline object to `eslint.config.mjs`
+// And you can directly return the composer object to `eslint.config.mjs`
 ```
 
 ## Sponsors

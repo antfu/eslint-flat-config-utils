@@ -3,22 +3,22 @@ import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
 /**
- * Awaitable array of ESLint flat configs or a pipeline object.
+ * Awaitable array of ESLint flat configs or a composer object.
  */
 export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
   | Awaitable<Arrayable<T>>
   | Awaitable<FlatConfigItem[]>
 
 /**
- * Create a chainable pipeline object that makes manipulating ESLint flat config easier.
+ * Create a chainable composer object that makes manipulating ESLint flat config easier.
  *
  * It extends Promise, so that you can directly await or export it to `eslint.config.mjs`
  *
  * ```ts
  * // eslint.config.mjs
- * import { pipe } from 'eslint-flat-config-utils'
+ * import { composer } from 'eslint-flat-config-utils'
  *
- * export default pipe(
+ * export default composer(
  *   {
  *     plugins: {},
  *     rules: {},
@@ -52,29 +52,36 @@ export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
  *     }
  *   )
  *
- * // And you an directly return the pipeline object to `eslint.config.mjs`
+ * // And you an directly return the composer object to `eslint.config.mjs`
  * ```
  */
-export function pipe<T extends FlatConfigItem = FlatConfigItem>(
+export function composer<T extends FlatConfigItem = FlatConfigItem>(
   ...configs: ResolvableFlatConfig<FlatConfigItem extends T ? T : FlatConfigItem>[]
-): FlatConfigPipeline<FlatConfigItem extends T ? T : FlatConfigItem> {
-  return new FlatConfigPipeline<FlatConfigItem extends T ? T : FlatConfigItem>()
-    .append(...configs)
+): FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem> {
+  return new FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem>(
+    ...configs,
+  )
 }
 
 /**
- * The underlying impolementation of `pipe()`.
- *
- * You don't need to use this class directly.
+ * The underlying impolementation of `composer()`.
  */
-export class FlatConfigPipeline<T extends object = FlatConfigItem, ConfigNames extends string = string> extends Promise<T[]> {
+export class FlatConfigComposer<
+  T extends object = FlatConfigItem,
+  ConfigNames extends string = string,
+> extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
   private _renames: Record<string, string> = {}
 
-  constructor() {
+  constructor(
+    ...configs: ResolvableFlatConfig<T>[]
+  ) {
     super(() => {})
+
+    if (configs.length)
+      this.append(...configs)
   }
 
   /**
@@ -277,3 +284,13 @@ function getConfigIndex(configs: FlatConfigItem[], nameOrIndex: string | number)
     return index
   }
 }
+
+/**
+ * @deprecated Renamed to `composer`.
+ */
+export const pipe = composer
+
+/**
+ * @deprecated Renamed to `FlatConfigComposer`.
+ */
+export class FlatConfigPipeline extends FlatConfigComposer {}

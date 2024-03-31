@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { pipe } from '../src/pipe'
+import { composer } from '../src/composer'
 
 it('empty', async () => {
-  const p = pipe()
+  const p = composer()
   expect(await p).toEqual([])
 })
 
 it('operations', async () => {
-  const p = pipe([{ name: 'init' }])
+  const p = composer([{ name: 'init' }])
     .renamePlugins({
       'import-x': 'x',
     })
@@ -55,7 +55,7 @@ it('operations', async () => {
 })
 
 it('onResolved', async () => {
-  const p = pipe([{ name: 'init' }])
+  const p = composer([{ name: 'init' }])
     .append({ name: 'append' })
     .onResolved((configs) => {
       return [
@@ -83,14 +83,14 @@ it('onResolved', async () => {
 
 describe('error', () => {
   it('error in config', async () => {
-    const p = pipe([{ name: 'init' }])
+    const p = composer([{ name: 'init' }])
       .append(Promise.reject(new Error('error in config')))
 
     expect(async () => await p).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: error in config]`)
   })
 
   it('error in inset', async () => {
-    const p = pipe(
+    const p = composer(
       { name: 'init1' },
       { name: 'init2' },
       { name: 'init3' },
@@ -107,7 +107,7 @@ describe('error', () => {
   })
 
   it('error in operation', async () => {
-    const p = pipe(
+    const p = composer(
       { name: 'init1' },
       { name: 'init2' },
       { }, // unnamed
