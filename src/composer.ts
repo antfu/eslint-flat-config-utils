@@ -8,6 +8,7 @@ import { mergeConfigs } from './merge'
 export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
   | Awaitable<Arrayable<T>>
   | Awaitable<FlatConfigItem[]>
+  | FlatConfigComposer<any>
 
 /**
  * Create a chainable composer object that makes manipulating ESLint flat config easier.
@@ -293,4 +294,7 @@ export const pipe = composer
 /**
  * @deprecated Renamed to `FlatConfigComposer`.
  */
-export class FlatConfigPipeline extends FlatConfigComposer {}
+export class FlatConfigPipeline<
+  T extends object = FlatConfigItem,
+  ConfigNames extends string = string,
+> extends FlatConfigComposer<T, ConfigNames> {}
