@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { composer } from '../src/composer'
+import type { FlatConfigItem } from '../src'
 
 it('empty', async () => {
   const p = composer()
@@ -14,7 +15,7 @@ it('operations', async () => {
     .append({ name: 'append' })
     .prepend(
       { name: 'prepend' },
-      Promise.resolve([{
+      Promise.resolve([<FlatConfigItem>{
         name: 'prepend2',
         plugins: { 'import-x': {} },
         rules: { 'import-x/import': 'error' },
