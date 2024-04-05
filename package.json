@@ -2,7 +2,7 @@
   "name": "eslint-flat-config-utils",
   "type": "module",
   "version": "0.2.0",
-  "packageManager": "pnpm@8.15.5",
+  "packageManager": "pnpm@8.15.6",
   "description": "Utils for managing and manipulating ESLint flat config arrays",
   "author": "Anthony Fu <anthonyfu117@hotmail.com>",
   "license": "MIT",
@@ -51,25 +51,25 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
-    "@types/eslint": "^8.56.6",
+    "@types/eslint": "^8.56.7",
     "pathe": "^1.1.2"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.11.4",
+    "@antfu/eslint-config": "^2.12.1",
     "@antfu/ni": "^0.21.12",
     "@antfu/utils": "^0.7.7",
-    "@types/node": "^20.11.30",
+    "@types/node": "^20.12.4",
     "bumpp": "^9.4.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "esno": "^4.7.0",
     "jsr": "^0.12.1",
     "lint-staged": "^15.2.2",
-    "pnpm": "^8.15.5",
+    "pnpm": "^8.15.6",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.11.1",
-    "typescript": "^5.4.3",
+    "typescript": "^5.4.4",
     "unbuild": "^2.0.0",
-    "vite": "^5.2.6",
+    "vite": "^5.2.8",
     "vitest": "^1.4.0"
   },
   "simple-git-hooks": {
