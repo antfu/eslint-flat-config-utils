@@ -1,6 +1,6 @@
 {
   "name": "@antfu/eslint-flat-config-utils",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "exports": "./src/index.ts",
   "include": [
     "src"
