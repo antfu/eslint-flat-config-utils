@@ -228,6 +228,18 @@ export class FlatConfigComposer<
   }
 
   /**
+   * Clone the composer object.
+   */
+  public clone(): FlatConfigComposer<T> {
+    const composer = new FlatConfigComposer<T>()
+    composer._operations = this._operations.slice()
+    composer._operationsOverrides = this._operationsOverrides.slice()
+    composer._operationsResolved = this._operationsResolved.slice()
+    composer._renames = { ...this._renames }
+    return composer
+  }
+
+  /**
    * Resolve the pipeline and return the final configs.
    *
    * This returns a promise. Calling `.then()` has the same effect.

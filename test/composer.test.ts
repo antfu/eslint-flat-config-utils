@@ -82,6 +82,18 @@ it('onResolved', async () => {
   `)
 })
 
+it('clone', async () => {
+  const p = composer([{ name: 'init' }])
+    .append({ name: 'append' })
+    .clone()
+    .append({ name: 'append2' })
+
+  const clone = p.clone()
+  clone.append({ name: 'append3' })
+
+  expect((await p).length).toBe((await clone).length - 1)
+})
+
 describe('error', () => {
   it('error in config', async () => {
     const p = composer([{ name: 'init' }])
