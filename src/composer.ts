@@ -1,13 +1,14 @@
-import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, FlatConfigItem, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
+import type { Linter } from 'eslint'
+import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
 /**
  * Awaitable array of ESLint flat configs or a composer object.
  */
-export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
+export type ResolvableFlatConfig<T extends Linter.FlatConfig = Linter.FlatConfig> =
   | Awaitable<Arrayable<T>>
-  | Awaitable<FlatConfigItem[]>
+  | Awaitable<Linter.FlatConfig[]>
   | FlatConfigComposer<any>
 
 /**
@@ -57,11 +58,11 @@ export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
  * ```
  */
 export function composer<
-  T extends FlatConfigItem = FlatConfigItem,
+  T extends Linter.FlatConfig = Linter.FlatConfig,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
 >(
-  ...configs: ResolvableFlatConfig<FlatConfigItem extends T ? T : FlatConfigItem>[]
-): FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem, ConfigNames> {
+  ...configs: ResolvableFlatConfig<Linter.FlatConfig extends T ? T : Linter.FlatConfig>[]
+): FlatConfigComposer<Linter.FlatConfig extends T ? T : Linter.FlatConfig, ConfigNames> {
   return new FlatConfigComposer(
     ...configs,
   )
@@ -71,7 +72,7 @@ export function composer<
  * The underlying impolementation of `composer()`.
  */
 export class FlatConfigComposer<
-  T extends object = FlatConfigItem,
+  T extends object = Linter.FlatConfig,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
 > extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
@@ -339,7 +340,7 @@ export class FlatConfigComposer<
   }
 }
 
-function getConfigIndex(configs: FlatConfigItem[], nameOrIndex: string | number): number {
+function getConfigIndex(configs: Linter.FlatConfig[], nameOrIndex: string | number): number {
   if (typeof nameOrIndex === 'number') {
     if (nameOrIndex < 0 || nameOrIndex >= configs.length)
       throw new Error(`ESLintFlatConfigUtils: Failed to locate config at index ${nameOrIndex}\n(${configs.length} configs in total)`)
@@ -370,6 +371,6 @@ export const pipe = composer
  * @deprecated Renamed to `FlatConfigComposer`.
  */
 export class FlatConfigPipeline<
-  T extends object = FlatConfigItem,
+  T extends object = Linter.FlatConfig,
   ConfigNames extends string = string,
 > extends FlatConfigComposer<T, ConfigNames> {}

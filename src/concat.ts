@@ -1,4 +1,5 @@
-import type { Awaitable, FlatConfigItem } from './types'
+import type { Linter } from 'eslint'
+import type { Awaitable } from './types'
 
 /**
  * Concat multiple flat configs into a single flat config array.
@@ -20,7 +21,7 @@ import type { Awaitable, FlatConfigItem } from './types'
  * )
  * ```
  */
-export async function concat<T extends FlatConfigItem = FlatConfigItem>(...configs: Awaitable<T | T[]>[]): Promise<T[]> {
+export async function concat<T extends Linter.FlatConfig = Linter.FlatConfig>(...configs: Awaitable<T | T[]>[]): Promise<T[]> {
   const resolved = await Promise.all(configs)
   return resolved.flat() as T[]
 }

@@ -1,4 +1,4 @@
-import type { FlatConfigItem } from './types'
+import type { Linter } from 'eslint'
 
 /**
  * Rename plugin prefixes in a rule object.
@@ -45,7 +45,7 @@ export function renamePluginsInRules(rules: Record<string, any>, map: Record<str
  * })
  * ```
  */
-export function renamePluginsInConfigs<T extends FlatConfigItem = FlatConfigItem>(configs: T[], map: Record<string, string>): T[] {
+export function renamePluginsInConfigs<T extends Linter.FlatConfig = Linter.FlatConfig>(configs: T[], map: Record<string, string>): T[] {
   return configs.map((i) => {
     const clone = { ...i }
     if (clone.rules)

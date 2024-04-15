@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { Linter } from 'eslint'
 import { composer } from '../src/composer'
-import type { FlatConfigItem } from '../src'
 
 it('empty', async () => {
   const p = composer()
@@ -15,7 +15,7 @@ it('operations', async () => {
     .append({ name: 'append' })
     .prepend(
       { name: 'prepend' },
-      Promise.resolve([<FlatConfigItem>{
+      Promise.resolve([<Linter.FlatConfig>{
         name: 'prepend2',
         plugins: { 'import-x': {} },
         rules: { 'import-x/import': 'error' },
@@ -97,7 +97,7 @@ it('clone', async () => {
 it('config name completion', () => {
   type Names = 'foo' | 'bar'
 
-  composer<FlatConfigItem, Names>()
+  composer<Linter.FlatConfig, Names>()
     .override('foo', { name: 'foo' })
     //         ^| here it should suggest 'foo' | 'bar'
 })

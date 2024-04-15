@@ -1,12 +1,11 @@
-import type { FlatConfigItem } from './types'
+import type { Linter } from 'eslint'
 
 /**
  * Merge multiple flat configs into a single flat config.
  *
  * Note there is no guarantee that the result works the same as the original configs.
  */
-
-export function mergeConfigs<T extends FlatConfigItem = FlatConfigItem>(...configs: T[]): T {
+export function mergeConfigs<T extends Linter.FlatConfig = Linter.FlatConfig>(...configs: T[]): T {
   const keys = new Set(configs.flatMap(i => Object.keys(i)))
   const merged = configs.reduce((acc, cur) => {
     return {

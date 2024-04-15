@@ -1,13 +1,11 @@
 import type { Linter } from 'eslint'
 
 /**
- * Extended ESLint flat config item with a name field.
+ * Alias to `Linter.FlatConfig`
  *
- * @see https://github.com/eslint/eslint/issues/18231
+ * @deprecated
  */
-export interface FlatConfigItem extends Linter.FlatConfig {
-  name?: string
-}
+export interface FlatConfigItem extends Linter.FlatConfig {}
 
 /**
  * A type that can be awaited. Promise<T> or T.

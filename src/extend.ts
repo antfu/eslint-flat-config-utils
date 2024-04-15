@@ -1,5 +1,5 @@
 import type { Linter } from 'eslint'
-import type { Awaitable, FlatConfigItem } from './types'
+import type { Awaitable } from './types'
 
 /**
  * Extend another flat configs and rename globs paths.
@@ -19,9 +19,9 @@ import type { Awaitable, FlatConfigItem } from './types'
  * ```
  */
 export async function extend(
-  configs: Awaitable<FlatConfigItem[]>,
+  configs: Awaitable<Linter.FlatConfig[]>,
   relativePath: string,
-): Promise<FlatConfigItem[]> {
+): Promise<Linter.FlatConfig[]> {
   const { join } = await import('pathe')
   const resolved = await configs
 
@@ -29,8 +29,8 @@ export async function extend(
   if (relativePath === '')
     return resolved
 
-  function renameGlobs(i: Linter.FlatConfigFileSpec): Linter.FlatConfigFileSpec {
-    if (typeof i === 'function')
+  function renameGlobs(i: string): string {
+    if (typeof i !== 'string')
       return i
     if (i.startsWith('!'))
       return `!${join(relativePath, i.slice(1))}`
