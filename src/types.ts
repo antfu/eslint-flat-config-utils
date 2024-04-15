@@ -41,3 +41,11 @@ interface Nothing { }
  * Adapted from https://github.com/microsoft/TypeScript/issues/29729
  */
 export type StringLiteralUnion<T extends U, U = string> = T | (U & Nothing)
+
+export type FilterType<T, F> = T extends F ? T : never
+
+export type NullableObject<T> = {
+  [K in keyof T]?: T[K] | null | undefined
+}
+
+export type GetRuleRecordFromConfig<T> = T extends { rules?: infer R } ? R : Linter.RulesRecord

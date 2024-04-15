@@ -102,6 +102,77 @@ it('config name completion', () => {
     //         ^| here it should suggest 'foo' | 'bar'
 })
 
+it('override rules', async () => {
+  let p = composer([
+    {
+      name: 'init',
+      rules: {
+        'no-console': 'error',
+        'no-unused-vars': 'error',
+      },
+    },
+  ])
+    .append({
+      name: 'init2',
+      rules: {
+        'no-console': 'off',
+      },
+    })
+
+    .overrideRules({
+      'no-unused-vars': ['error', { vars: 'all', args: 'after-used' }],
+      'no-exists': null,
+    })
+
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "rules": {
+          "no-console": "error",
+          "no-unused-vars": [
+            "error",
+            {
+              "args": "after-used",
+              "vars": "all",
+            },
+          ],
+        },
+      },
+      {
+        "name": "init2",
+        "rules": {
+          "no-console": "off",
+        },
+      },
+    ]
+  `)
+
+  p = p.clone()
+    .removeRules('no-console')
+
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "rules": {
+          "no-unused-vars": [
+            "error",
+            {
+              "args": "after-used",
+              "vars": "all",
+            },
+          ],
+        },
+      },
+      {
+        "name": "init2",
+        "rules": {},
+      },
+    ]
+  `)
+})
+
 describe('error', () => {
   it('error in config', async () => {
     const p = composer([{ name: 'init' }])

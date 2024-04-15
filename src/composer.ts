@@ -1,4 +1,4 @@
-import type { Arrayable, Awaitable, DefaultConfigNamesMap, FlatConfigItem, StringLiteralUnion } from './types'
+import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, FlatConfigItem, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
@@ -182,11 +182,71 @@ export class FlatConfigComposer<
    * Same as calling `override` multiple times.
    */
   public overrides(
-    overrides: Record< StringLiteralUnion<ConfigNames, string | number>, T | ((config: T) => Awaitable<T>)>,
+    overrides: Record<StringLiteralUnion<ConfigNames, string | number>, T | ((config: T) => Awaitable<T>)>,
   ): this {
     for (const [name, config] of Object.entries(overrides))
       this.override(name, config)
     return this
+  }
+
+  /**
+   * Override rules and it's options in **all configs**.
+   *
+   * Pass `null` as the value to remove the rule.
+   *
+   * @example
+   * ```ts
+   * composer
+   *   .overrideRules({
+   *      'no-console': 'off',
+   *      'no-unused-vars': ['error', { vars: 'all', args: 'after-used' }],
+   *      // remove the rule from all configs
+   *      'no-undef': null,
+   *   })
+   * ```
+   */
+  public overrideRules(
+    rules: NullableObject<GetRuleRecordFromConfig<T>>,
+  ): this {
+    this._operationsOverrides.push(async (configs) => {
+      for (const config of configs) {
+        if (!('rules' in config) || !config.rules)
+          continue
+
+        const configRules = config.rules as Record<string, any>
+
+        for (const [key, value] of Object.entries(rules)) {
+          if (!(key in configRules))
+            continue
+          if (value == null)
+            delete configRules[key]
+          else
+            configRules[key] = value
+        }
+      }
+      return configs
+    })
+    return this
+  }
+
+  /**
+   * Remove rules from **all configs**.
+   *
+   * @example
+   * ```ts
+   * composer
+   *  .removeRules(
+   *    'no-console',
+   *    'no-unused-vars'
+   *  )
+   * ```
+   */
+  public removeRules(
+    ...rules: StringLiteralUnion<FilterType<keyof GetRuleRecordFromConfig<T>, string>, string>[]
+  ): this {
+    return this.overrideRules(Object.fromEntries(
+      rules.map(rule => [rule, null]),
+    ) as any)
   }
 
   /**
