@@ -94,6 +94,14 @@ it('clone', async () => {
   expect((await p).length).toBe((await clone).length - 1)
 })
 
+it('config name completion', () => {
+  type Names = 'foo' | 'bar'
+
+  composer<FlatConfigItem, Names>()
+    .override('foo', { name: 'foo' })
+    //         ^| here it should suggest 'foo' | 'bar'
+})
+
 describe('error', () => {
   it('error in config', async () => {
     const p = composer([{ name: 'init' }])

@@ -1,4 +1,4 @@
-import type { Arrayable, Awaitable, FlatConfigItem } from './types'
+import type { Arrayable, Awaitable, DefaultConfigNamesMap, FlatConfigItem, StringLiteralUnion } from './types'
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
@@ -56,10 +56,13 @@ export type ResolvableFlatConfig<T extends FlatConfigItem = FlatConfigItem> =
  * // And you an directly return the composer object to `eslint.config.mjs`
  * ```
  */
-export function composer<T extends FlatConfigItem = FlatConfigItem>(
+export function composer<
+  T extends FlatConfigItem = FlatConfigItem,
+  ConfigNames extends string = keyof DefaultConfigNamesMap,
+>(
   ...configs: ResolvableFlatConfig<FlatConfigItem extends T ? T : FlatConfigItem>[]
-): FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem> {
-  return new FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem>(
+): FlatConfigComposer<FlatConfigItem extends T ? T : FlatConfigItem, ConfigNames> {
+  return new FlatConfigComposer(
     ...configs,
   )
 }
@@ -69,7 +72,7 @@ export function composer<T extends FlatConfigItem = FlatConfigItem>(
  */
 export class FlatConfigComposer<
   T extends object = FlatConfigItem,
-  ConfigNames extends string = string,
+  ConfigNames extends string = keyof DefaultConfigNamesMap,
 > extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
@@ -123,7 +126,7 @@ export class FlatConfigComposer<
    * Insert configs before a specific config.
    */
   public insertBefore(
-    nameOrIndex: ConfigNames | string | number,
+    nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)
@@ -140,7 +143,7 @@ export class FlatConfigComposer<
    * Insert configs after a specific config.
    */
   public insertAfter(
-    nameOrIndex: ConfigNames | string | number,
+    nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)
@@ -159,7 +162,7 @@ export class FlatConfigComposer<
    * It will be merged with the original config, or provide a custom function to replace the config entirely.
    */
   public override(
-    nameOrIndex: ConfigNames | string | number,
+    nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     config: T | ((config: T) => Awaitable<T>),
   ): this {
     this._operationsOverrides.push(async (configs) => {
@@ -179,7 +182,7 @@ export class FlatConfigComposer<
    * Same as calling `override` multiple times.
    */
   public overrides(
-    overrides: Record<ConfigNames | string | number, T | ((config: T) => Awaitable<T>)>,
+    overrides: Record< StringLiteralUnion<ConfigNames, string | number>, T | ((config: T) => Awaitable<T>)>,
   ): this {
     for (const [name, config] of Object.entries(overrides))
       this.override(name, config)
@@ -204,7 +207,7 @@ export class FlatConfigComposer<
    * The original config will be removed and replaced with the new one.
    */
   public replace(
-    nameOrIndex: ConfigNames | string | number,
+    nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
     const promise = Promise.all(items)

@@ -18,3 +18,26 @@ export type Awaitable<T> = T | Promise<T>
  * A type that can be an array or a single item.
  */
 export type Arrayable<T> = T | T[]
+
+/**
+ * Default config names map. Used for type augmentation.
+ *
+ * @example
+ * ```ts
+ * declare module 'eslint-flat-config-utils' {
+ *   interface DefaultConfigNamesMap {
+ *     'my-custom-config': true
+ *   }
+ * }
+ * ```
+ */
+export interface DefaultConfigNamesMap {}
+
+interface Nothing { }
+
+/**
+ * type StringLiteralUnion<'foo'> = 'foo' | string
+ * This has auto completion whereas `'foo' | string` doesn't
+ * Adapted from https://github.com/microsoft/TypeScript/issues/29729
+ */
+export type StringLiteralUnion<T extends U, U = string> = T | (U & Nothing)
