@@ -15,11 +15,15 @@ it('operations', async () => {
     .append({ name: 'append' })
     .prepend(
       { name: 'prepend' },
-      Promise.resolve([<Linter.FlatConfig>{
-        name: 'prepend2',
-        plugins: { 'import-x': {} },
-        rules: { 'import-x/import': 'error' },
-      }]),
+      undefined,
+      Promise.resolve([
+        <Linter.FlatConfig>{
+          name: 'prepend2',
+          plugins: { 'import-x': {} },
+          rules: { 'import-x/import': 'error' },
+        },
+        false as const,
+      ]),
     )
     .insertAfter('prepend', { name: 'insertAfter' })
     .override('prepend2', {

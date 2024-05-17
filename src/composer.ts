@@ -7,8 +7,8 @@ import { mergeConfigs } from './merge'
  * Awaitable array of ESLint flat configs or a composer object.
  */
 export type ResolvableFlatConfig<T extends Linter.FlatConfig = Linter.FlatConfig> =
-  | Awaitable<Arrayable<T>>
-  | Awaitable<Linter.FlatConfig[]>
+  | Awaitable<Arrayable<(T | false | undefined | null)>>
+  | Awaitable<(Linter.FlatConfig | false | undefined | null)[]>
   | FlatConfigComposer<any>
 
 /**
@@ -105,7 +105,7 @@ export class FlatConfigComposer<
   public append(...items: ResolvableFlatConfig<T>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
-      const resolved = (await promise).flat() as T[]
+      const resolved = (await promise).flat().filter(Boolean) as T[]
       return [...configs, ...resolved]
     })
     return this
@@ -117,7 +117,7 @@ export class FlatConfigComposer<
   public prepend(...items: ResolvableFlatConfig<T>[]): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
-      const resolved = (await promise).flat() as T[]
+      const resolved = (await promise).flat().filter(Boolean) as T[]
       return [...resolved, ...configs]
     })
     return this
@@ -132,7 +132,7 @@ export class FlatConfigComposer<
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
-      const resolved = (await promise).flat() as T[]
+      const resolved = (await promise).flat().filter(Boolean) as T[]
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index, 0, ...resolved)
       return configs
@@ -149,7 +149,7 @@ export class FlatConfigComposer<
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
-      const resolved = (await promise).flat() as T[]
+      const resolved = (await promise).flat().filter(Boolean) as T[]
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index + 1, 0, ...resolved)
       return configs
@@ -275,7 +275,7 @@ export class FlatConfigComposer<
   ): this {
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
-      const resolved = (await promise).flat() as T[]
+      const resolved = (await promise).flat().filter(Boolean) as T[]
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index, 1, ...resolved)
       return configs
