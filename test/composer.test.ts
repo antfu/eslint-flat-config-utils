@@ -17,7 +17,7 @@ it('operations', async () => {
       { name: 'prepend' },
       undefined,
       Promise.resolve([
-        <Linter.FlatConfig>{
+        <Linter.Config>{
           name: 'prepend2',
           plugins: { 'import-x': {} },
           rules: { 'import-x/import': 'error' },
@@ -101,7 +101,7 @@ it('clone', async () => {
 it('config name completion', () => {
   type Names = 'foo' | 'bar'
 
-  composer<Linter.FlatConfig, Names>()
+  composer<Linter.Config, Names>()
     .override('foo', { name: 'foo' })
     //         ^| here it should suggest 'foo' | 'bar'
 })

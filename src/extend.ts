@@ -19,9 +19,9 @@ import type { Awaitable } from './types'
  * ```
  */
 export async function extend(
-  configs: Awaitable<Linter.FlatConfig[]>,
+  configs: Awaitable<Linter.Config[]>,
   relativePath: string,
-): Promise<Linter.FlatConfig[]> {
+): Promise<Linter.Config[]> {
   const { join } = await import('pathe')
   const resolved = await configs
 

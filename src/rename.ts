@@ -45,7 +45,7 @@ export function renamePluginsInRules(rules: Record<string, any>, map: Record<str
  * })
  * ```
  */
-export function renamePluginsInConfigs<T extends Linter.FlatConfig = Linter.FlatConfig>(configs: T[], map: Record<string, string>): T[] {
+export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(configs: T[], map: Record<string, string>): T[] {
   return configs.map((i) => {
     const clone = { ...i }
     if (clone.rules)

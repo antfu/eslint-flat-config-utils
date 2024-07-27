@@ -6,9 +6,9 @@ import { mergeConfigs } from './merge'
 /**
  * Awaitable array of ESLint flat configs or a composer object.
  */
-export type ResolvableFlatConfig<T extends Linter.FlatConfig = Linter.FlatConfig> =
+export type ResolvableFlatConfig<T extends Linter.Config = Linter.Config> =
   | Awaitable<Arrayable<(T | false | undefined | null)>>
-  | Awaitable<(Linter.FlatConfig | false | undefined | null)[]>
+  | Awaitable<(Linter.Config | false | undefined | null)[]>
   | FlatConfigComposer<any>
 
 /**
@@ -58,11 +58,11 @@ export type ResolvableFlatConfig<T extends Linter.FlatConfig = Linter.FlatConfig
  * ```
  */
 export function composer<
-  T extends Linter.FlatConfig = Linter.FlatConfig,
+  T extends Linter.Config = Linter.Config,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
 >(
-  ...configs: ResolvableFlatConfig<Linter.FlatConfig extends T ? T : Linter.FlatConfig>[]
-): FlatConfigComposer<Linter.FlatConfig extends T ? T : Linter.FlatConfig, ConfigNames> {
+  ...configs: ResolvableFlatConfig<Linter.Config extends T ? T : Linter.Config>[]
+): FlatConfigComposer<Linter.Config extends T ? T : Linter.Config, ConfigNames> {
   return new FlatConfigComposer(
     ...configs,
   )
@@ -72,7 +72,7 @@ export function composer<
  * The underlying impolementation of `composer()`.
  */
 export class FlatConfigComposer<
-  T extends object = Linter.FlatConfig,
+  T extends object = Linter.Config,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
 > extends Promise<T[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
@@ -342,7 +342,7 @@ export class FlatConfigComposer<
   }
 }
 
-function getConfigIndex(configs: Linter.FlatConfig[], nameOrIndex: string | number): number {
+function getConfigIndex(configs: Linter.Config[], nameOrIndex: string | number): number {
   if (typeof nameOrIndex === 'number') {
     if (nameOrIndex < 0 || nameOrIndex >= configs.length)
       throw new Error(`ESLintFlatConfigUtils: Failed to locate config at index ${nameOrIndex}\n(${configs.length} configs in total)`)
@@ -373,6 +373,6 @@ export const pipe = composer
  * @deprecated Renamed to `FlatConfigComposer`.
  */
 export class FlatConfigPipeline<
-  T extends object = Linter.FlatConfig,
+  T extends object = Linter.Config,
   ConfigNames extends string = string,
 > extends FlatConfigComposer<T, ConfigNames> {}

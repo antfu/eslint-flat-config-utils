@@ -1,11 +1,11 @@
 import type { Linter } from 'eslint'
 
 /**
- * Alias to `Linter.FlatConfig`
+ * Alias to `Linter.Config`
  *
  * @deprecated
  */
-export interface FlatConfigItem extends Linter.FlatConfig {}
+export interface FlatConfigItem extends Linter.Config {}
 
 /**
  * A type that can be awaited. Promise<T> or T.
