@@ -219,4 +219,42 @@ describe('error', () => {
       (1 unnamed configs)]
     `)
   })
+
+  it('error in conflicts', async () => {
+    // No error without calling s
+    await composer(
+      { name: 'init1', plugins: { 'import-x': {} } },
+      { name: 'init2', plugins: { 'import-x': {} } },
+    )
+
+    expect(async () => {
+      await composer(
+        { name: 'init1', plugins: { 'import-x': {} } },
+        { name: 'init2', plugins: { 'import-x': {} } },
+      )
+        .setPluginConflictsError()
+    })
+      .rejects.toThrowErrorMatchingInlineSnapshot(
+        `[Error: ESLintFlatConfigUtils: Different instances of plugin "import-x" found in multiple configs: init1, init2. It's likely you misconfigured the merge of these configs.]`,
+      )
+
+    expect(async () => {
+      await composer(
+        { name: 'init1', plugins: { 'import-x': {} } },
+        { name: 'init2', plugins: { 'import-x': {} } },
+        { name: 'init3', plugins: { import: {} } },
+        { name: 'init4', plugins: { import: {} } },
+      )
+        .setPluginConflictsError()
+        .setPluginConflictsError(
+          'import',
+          plugin => `Plugin "${plugin}" is duplicated in multiple configs`,
+        )
+    })
+      .rejects.toThrowErrorMatchingInlineSnapshot(`
+      [Error: ESLintFlatConfigUtils:
+        1: Different instances of plugin "import-x" found in multiple configs: init1, init2. It's likely you misconfigured the merge of these configs.
+        2: Plugin "import" is duplicated in multiple configs]
+    `)
+  })
 })

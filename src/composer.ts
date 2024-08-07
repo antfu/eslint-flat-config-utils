@@ -3,6 +3,11 @@ import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRe
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
+export type PluginConflictsError<T extends Linter.Config = Linter.Config> = (
+  pluginName: string,
+  configs: T[]
+) => string
+
 /**
  * Awaitable array of ESLint flat configs or a composer object.
  */
@@ -79,6 +84,7 @@ export class FlatConfigComposer<
   private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
   private _renames: Record<string, string> = {}
+  private _pluginsConflictsError = new Map<string, string | PluginConflictsError>()
 
   constructor(
     ...configs: ResolvableFlatConfig<T>[]
@@ -284,6 +290,95 @@ export class FlatConfigComposer<
   }
 
   /**
+   * Set a custom warning message for plugins conflicts.
+   *
+   * The error message can be a string or a function that returns a string.
+   *
+   * Error message accepts template strings:
+   * - `{{pluginName}}`: the name of the plugin that has conflicts
+   * - `{{configName1}}`: the name of the first config that uses the plugin
+   * - `{{configName2}}`: the name of the second config that uses the plugin
+   * - `{{configNames}}`: a list of config names that uses the plugin
+   *
+   * When only one argument is provided, it will be used as the default error message.
+   */
+  public setPluginConflictsError(
+    warning?: string | PluginConflictsError
+  ): this
+  public setPluginConflictsError(
+    pluginName: string,
+    warning: string | PluginConflictsError,
+  ): this
+  public setPluginConflictsError(
+    arg1: string | PluginConflictsError = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.',
+    arg2?: string | PluginConflictsError,
+  ): this {
+    if (arg2 != null)
+      this._pluginsConflictsError.set(arg1 as string, arg2)
+    else
+      this._pluginsConflictsError.set('*', arg1)
+    return this
+  }
+
+  private _verifyPluginsConflicts(configs: T[]): void {
+    if (!this._pluginsConflictsError.size)
+      return
+
+    const plugins = new Map<any, {
+      name: string
+      configs: Linter.Config[]
+    }>()
+
+    const names = new Set<string>()
+
+    for (const config of configs as Linter.Config[]) {
+      if (!config.plugins)
+        continue
+
+      for (const [name, plugin] of Object.entries(config.plugins)) {
+        names.add(name)
+        if (!plugins.has(plugin))
+          plugins.set(plugin, { name, configs: [] })
+        plugins.get(plugin)!.configs.push(config)
+      }
+    }
+
+    function getConfigName(config: Linter.Config): string {
+      return config.name || `#${configs.indexOf(config as T)}`
+    }
+
+    const errors: string[] = []
+    for (const name of names) {
+      const instancesOfName = [...plugins.values()].filter(p => p.name === name)
+      if (instancesOfName.length <= 1)
+        continue
+
+      const configsOfName = instancesOfName.map(p => p.configs[0])
+
+      const message = this._pluginsConflictsError.get(name) || this._pluginsConflictsError.get('*')
+      if (typeof message === 'function') {
+        errors.push(message(name, configsOfName))
+      }
+      else if (message) {
+        errors.push(
+          message
+            .replace(/\{\{pluginName\}\}/g, name)
+            .replace(/\{\{configName1\}\}/g, getConfigName(configsOfName[0]))
+            .replace(/\{\{configName2\}\}/g, getConfigName(configsOfName[1]))
+            .replace(/\{\{configNames\}\}/g, configsOfName.map(getConfigName).join(', ')),
+        )
+      }
+    }
+
+    if (errors.length) {
+      if (errors.length === 1)
+        throw new Error(`ESLintFlatConfigUtils: ${errors[0]}`)
+      else
+        throw new Error(`ESLintFlatConfigUtils:\n${errors.map((e, i) => `  ${i + 1}: ${e}`).join('\n')}`)
+    }
+  }
+
+  /**
    * Hook when all configs are resolved but before returning the final configs.
    *
    * You can modify the final configs here.
@@ -321,6 +416,8 @@ export class FlatConfigComposer<
 
     for (const promise of this._operationsResolved)
       configs = await promise(configs) || configs
+
+    this._verifyPluginsConflicts(configs)
 
     return configs
   }
