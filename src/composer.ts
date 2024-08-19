@@ -397,6 +397,7 @@ export class FlatConfigComposer<
     composer._operationsOverrides = this._operationsOverrides.slice()
     composer._operationsResolved = this._operationsResolved.slice()
     composer._renames = { ...this._renames }
+    composer._pluginsConflictsError = new Map(this._pluginsConflictsError)
     return composer
   }
 
