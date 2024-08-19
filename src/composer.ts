@@ -3,6 +3,8 @@ import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRe
 import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
 
+export const DEFAULT_PLUGIN_CONFLICTS_ERROR = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.'
+
 export type PluginConflictsError<T extends Linter.Config = Linter.Config> = (
   pluginName: string,
   configs: T[]
@@ -310,7 +312,7 @@ export class FlatConfigComposer<
     warning: string | PluginConflictsError,
   ): this
   public setPluginConflictsError(
-    arg1: string | PluginConflictsError = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.',
+    arg1: string | PluginConflictsError = DEFAULT_PLUGIN_CONFLICTS_ERROR,
     arg2?: string | PluginConflictsError,
   ): this {
     if (arg2 != null)
