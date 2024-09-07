@@ -51,7 +51,6 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
-    "@types/eslint": "^9.6.1",
     "pathe": "^1.1.2"
   },
   "devDependencies": {
