@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { composer } from '../src/composer'
 import { extend } from '../src'
+import { composer } from '../src/composer'
 
 it('empty', async () => {
   const p = composer(

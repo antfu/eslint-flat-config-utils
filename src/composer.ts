@@ -1,7 +1,7 @@
 import type { Linter } from 'eslint'
-import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
-import { renamePluginsInConfigs } from './rename'
 import { mergeConfigs } from './merge'
+import { renamePluginsInConfigs } from './rename'
+import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
 
 export const DEFAULT_PLUGIN_CONFLICTS_ERROR = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.'
 

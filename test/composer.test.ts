@@ -234,7 +234,8 @@ describe('error', () => {
       )
         .setPluginConflictsError()
     })
-      .rejects.toThrowErrorMatchingInlineSnapshot(
+      .rejects
+      .toThrowErrorMatchingInlineSnapshot(
         `[Error: ESLintFlatConfigUtils: Different instances of plugin "import-x" found in multiple configs: init1, init2. It's likely you misconfigured the merge of these configs.]`,
       )
 
@@ -251,7 +252,8 @@ describe('error', () => {
           plugin => `Plugin "${plugin}" is duplicated in multiple configs`,
         )
     })
-      .rejects.toThrowErrorMatchingInlineSnapshot(`
+      .rejects
+      .toThrowErrorMatchingInlineSnapshot(`
       [Error: ESLintFlatConfigUtils:
         1: Different instances of plugin "import-x" found in multiple configs: init1, init2. It's likely you misconfigured the merge of these configs.
         2: Plugin "import" is duplicated in multiple configs]
