@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
 import type { Linter } from 'eslint'
+import { describe, expect, it } from 'vitest'
 import { composer } from '../src/composer'
 
 it('empty', async () => {
