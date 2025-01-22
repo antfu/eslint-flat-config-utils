@@ -99,6 +99,89 @@ export default composer(
 // And you can directly return the composer object to `eslint.config.mjs`
 ```
 
+##### `composer.renamePlugins`
+
+This helper renames plugins in all configurations in the composer. It is useful when you want to enforce a plugin to a custom name:
+
+```ts
+const config = await composer([
+  {
+    plugins: {
+      n: pluginN,
+    },
+    rules: {
+      'n/foo': 'error',
+    }
+  }
+])
+  .renamePlugins({
+    n: 'node'
+  })
+
+// The final config will have `node/foo` rule instead of `n/foo`
+```
+
+##### `composer.removeRules`
+
+This helper removes specified rules from all configurations in the composer. It is useful when you are certain that these rules are not needed in the final configuration. Unlike overriding with `off`, removed rules are not affected by priority considerations.
+
+```ts
+const config = await composer([
+  {
+    rules: {
+      'foo/bar': 'error',
+      'foo/baz': 'warn',
+    }
+  },
+  {
+    files: ['*.ts'],
+    rules: {
+      'foo/bar': 'off',
+    }
+  }
+  // ...
+])
+  .removeRules(
+    'foo/bar',
+    'foo/baz',
+  )
+
+// The final config will not have `foo/bar` and `foo/baz` rules at all
+```
+
+##### `composer.disableRulesFix`
+
+This helper **hijack** plugins to make fixable rules non-fixable, useful when you want to disable auto-fixing for some rules but still keep them enabled.
+
+For example, if we want the rule to error when we use `let` on a const, but we don't want auto-fix to change it to `const` automatically:
+
+```ts
+const config = await composer([
+  {
+    plugins: {
+      'unused-imports': pluginUnusedImports,
+    },
+    rules: {
+      'perfer-const': 'error',
+      'unused-imports/no-unused-imports': 'error',
+    }
+  }
+])
+  .disableRulesFix(
+    [
+      'prefer-const',
+      'unused-imports/no-unused-imports',
+    ],
+    {
+      // this is required only when patching core rules like `prefer-const` (rules without a plugin prefix)
+      builtinRules: () => import('eslint/use-at-your-own-risk').then(r => r.builtinRules),
+    },
+  )
+```
+
+> [!NOTE]
+> This function **mutate** the plugin object which will affect all the references to the plugin object globally. The changes are not reversible in the current runtime.
+
 ### `extend`
 
 Extend another flat config from a different root, and rewrite the glob paths accordingly:

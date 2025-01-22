@@ -1,9 +1,15 @@
-import type { Linter } from 'eslint'
+import type { Linter, Rule } from 'eslint'
 import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
+import { disableRuleFixes, hijackPluginRule } from './hijack'
 import { mergeConfigs } from './merge'
+import { parseRuleId } from './parse'
 import { renamePluginsInConfigs } from './rename'
 
 export const DEFAULT_PLUGIN_CONFLICTS_ERROR = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.'
+
+export interface DisableFixesOptions {
+  builtinRules?: Map<string, Rule.RuleModule> | (() => Awaitable<Map<string, Rule.RuleModule>>)
+}
 
 export type PluginConflictsError<T extends Linter.Config = Linter.Config> = (
   pluginName: string,
@@ -286,6 +292,47 @@ export class FlatConfigComposer<
       const resolved = (await promise).flat().filter(Boolean) as T[]
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index, 1, ...resolved)
+      return configs
+    })
+    return this
+  }
+
+  /**
+   * Hijack into plugins to disable fixes for specific rules.
+   *
+   * Note this mutates the plugin object, use with caution.
+   *
+   * @example
+   * ```ts
+   * const config = await composer(...)
+   *  .disableRulesFix([
+   *    'unused-imports/no-unused-imports',
+   *    'vitest/no-only-tests'
+   *  ])
+   * ```
+   */
+  public disableRulesFix(ruleIds: string[], options: DisableFixesOptions = {}): this {
+    this._operations.push(async (configs) => {
+      for (const name of ruleIds) {
+        const parsed = parseRuleId(name)
+        if (!parsed.plugin) {
+          if (!options.builtinRules)
+            throw new Error(`Patching core rule "${name}" require pass \`{ builtinRules: () => import('eslint/use-at-your-own-risk').then(r => r.builtinRules) }\` in the options`)
+          const builtinRules = typeof options.builtinRules === 'function'
+            ? await options.builtinRules()
+            : options.builtinRules
+          const rule = builtinRules.get(name)
+          if (!rule)
+            throw new Error(`Rule "${name}" not found in core rules`)
+          disableRuleFixes(rule)
+        }
+        else {
+          const plugins = new Set((configs as Linter.Config[]).map(c => c.plugins?.[parsed.plugin!]).filter(x => !!x))
+          for (const plugin of plugins) {
+            hijackPluginRule(plugin, parsed.rule, rule => disableRuleFixes(rule))
+          }
+        }
+      }
       return configs
     })
     return this
