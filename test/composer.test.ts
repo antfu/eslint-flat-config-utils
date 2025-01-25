@@ -182,7 +182,7 @@ describe('error', () => {
     const p = composer([{ name: 'init' }])
       .append(Promise.reject(new Error('error in config')))
 
-    expect(async () => await p).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: error in config]`)
+    await expect(async () => await p).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: error in config]`)
   })
 
   it('error in inset', async () => {
@@ -196,10 +196,12 @@ describe('error', () => {
       )
       .insertAfter('init4', { name: 'insertAfter1' })
 
-    expect(async () => await p).rejects.toThrowErrorMatchingInlineSnapshot(`
-      [Error: ESLintFlatConfigUtils: Failed to locate config with name "init4"
-      Available names are: init1, init2, init3, append1]
-    `)
+    await expect(async () => await p)
+      .rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+        [Error: ESLintFlatConfigUtils: Failed to locate config with name "init4"
+        Available names are: init1, init2, init3, append1]
+      `)
   })
 
   it('error in operation', async () => {
@@ -213,11 +215,13 @@ describe('error', () => {
       )
       .override('init4', { name: 'insertAfter1' })
 
-    expect(async () => await p).rejects.toThrowErrorMatchingInlineSnapshot(`
-      [Error: ESLintFlatConfigUtils: Failed to locate config with name "init4"
-      Available names are: init1, init2, append1
-      (1 unnamed configs)]
-    `)
+    await expect(async () => await p)
+      .rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+        [Error: ESLintFlatConfigUtils: Failed to locate config with name "init4"
+        Available names are: init1, init2, append1
+        (1 unnamed configs)]
+      `)
   })
 
   it('error in conflicts', async () => {
@@ -227,7 +231,7 @@ describe('error', () => {
       { name: 'init2', plugins: { 'import-x': {} } },
     )
 
-    expect(async () => {
+    await expect(async () => {
       await composer(
         { name: 'init1', plugins: { 'import-x': {} } },
         { name: 'init2', plugins: { 'import-x': {} } },
@@ -239,7 +243,7 @@ describe('error', () => {
         `[Error: ESLintFlatConfigUtils: Different instances of plugin "import-x" found in multiple configs: init1, init2. It's likely you misconfigured the merge of these configs.]`,
       )
 
-    expect(async () => {
+    await expect(async () => {
       await composer(
         { name: 'init1', plugins: { 'import-x': {} } },
         { name: 'init2', plugins: { 'import-x': {} } },
