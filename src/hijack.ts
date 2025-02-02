@@ -12,14 +12,21 @@ export function hijackPluginRule(
   if (!original) {
     throw new Error(`Rule "${name}" not found in plugin "${plugin.meta?.name || plugin.name}"`)
   }
-  plugin.rules![name] = factory(original)
+  const patched = factory(original)
+  if (patched !== plugin.rules![name])
+    plugin.rules![name] = patched
   return plugin
 }
+
+const FLAG_DISABLE_FIXES = '__eslint-flat-config-utils-disable-fixes__'
 
 /**
  * Hijack into a rule's `context.report` to disable fixes.
  */
 export function disableRuleFixes(rule: Rule.RuleModule): Rule.RuleModule {
+  if ((rule as any)[FLAG_DISABLE_FIXES]) {
+    return rule
+  }
   const originalCreate = rule.create.bind(rule)
   rule.create = (context): any => {
     const clonedContext = { ...context }
@@ -42,6 +49,7 @@ export function disableRuleFixes(rule: Rule.RuleModule): Rule.RuleModule {
         return Reflect.set(context, prop, value, receiver)
       },
     })
+    Object.defineProperty(proxiedContext, FLAG_DISABLE_FIXES, { value: true, enumerable: false })
     return originalCreate(proxiedContext)
   }
   return rule
