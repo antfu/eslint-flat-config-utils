@@ -267,6 +267,42 @@ export class FlatConfigComposer<
   }
 
   /**
+   * Remove plugins by name and all the rules referenced by them.
+   *
+   * @example
+   * ```ts
+   * composer
+   *   .removePlugins(
+   *     'node'
+   *   )
+   * ```
+   *
+   * The `plugins: { node }` and `rules: { 'node/xxx': 'error' }` will be removed from all configs.
+   */
+  public removePlugins(
+    ...names: string[]
+  ): this {
+    this._operationsOverrides.push(async (configs) => {
+      for (const config of configs) {
+        if ('plugins' in config && typeof config.plugins === 'object' && config.plugins) {
+          for (const name of names) {
+            if (name in config.plugins)
+              delete (config.plugins as any)[name]
+          }
+        }
+        if ('rules' in config && typeof config.rules === 'object' && config.rules) {
+          for (const key of Object.keys(config.rules)) {
+            if (names.some(n => key.startsWith(`${n}/`)))
+              delete (config.rules as any)[key]
+          }
+        }
+      }
+      return configs
+    })
+    return this
+  }
+
+  /**
    * Remove a specific config by name or index.
    */
   public remove(nameOrIndex: ConfigNames | string | number): this {

@@ -177,6 +177,63 @@ it('override rules', async () => {
   `)
 })
 
+it('remove plugins', async () => {
+  const p = composer([
+    {
+      name: 'init',
+      plugins: {
+        node: {},
+      },
+      rules: {
+        'no-console': 'error',
+        'no-unused-vars': 'error',
+      },
+    },
+    {
+      rules: {
+        'node/no-console': 'error',
+        'node/no-unused-vars': 'error',
+      },
+    },
+    {
+      plugins: {
+        node: {},
+        node2: {},
+      },
+      rules: {
+        'node/no-console': 'off',
+        'node/no-unused-vars': 'error',
+        'node2/no-unused-vars': 'error',
+      },
+    },
+  ])
+    .removePlugins('node')
+
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "plugins": {},
+        "rules": {
+          "no-console": "error",
+          "no-unused-vars": "error",
+        },
+      },
+      {
+        "rules": {},
+      },
+      {
+        "plugins": {
+          "node2": {},
+        },
+        "rules": {
+          "node2/no-unused-vars": "error",
+        },
+      },
+    ]
+  `)
+})
+
 describe('error', () => {
   it('error in config', async () => {
     const p = composer([{ name: 'init' }])

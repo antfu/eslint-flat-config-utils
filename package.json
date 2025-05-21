@@ -59,6 +59,7 @@
     "@types/node": "^22.15.21",
     "bumpp": "^10.1.1",
     "eslint": "^9.27.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "esno": "^4.8.0",
     "jsr": "^0.13.4",
     "lint-staged": "^16.0.0",
