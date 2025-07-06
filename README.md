@@ -20,7 +20,7 @@ npm i eslint-flat-config-utils
 
 Most of the descriptions are written in JSDoc, you can find more details in the [documentation](https://jsr.io/@antfu/eslint-flat-config-utils/doc) via JSR.
 
-Here listing a few highlighted ones:
+Here are a few highlighted ones:
 
 ### `concat`
 
@@ -35,7 +35,7 @@ export default concat(
     plugins: {},
     rules: {},
   },
-  // It can also takes a array of configs:
+  // It can also take an array of configs:
   [
     {
       plugins: {},
@@ -56,7 +56,7 @@ export default concat(
 
 Create a chainable composer that makes manipulating ESLint flat config easier.
 
-It extends Promise, so that you can directly await or export it to `eslint.config.mjs`
+It extends Promise so that you can directly await or export it to `eslint.config.mjs`
 
 ```ts
 // eslint.config.mjs
@@ -67,29 +67,29 @@ export default composer(
     plugins: {},
     rules: {},
   }
-  // ...some configs, accepts same arguments as `concat`
+  // ...Some configs, accepts the same arguments as `concat`
 )
   .append(
-    // appends more configs at the end, accepts same arguments as `concat`
+    // Appends more configs at the end, accepts same arguments as `concat`
   )
   .prepend(
-    // prepends more configs at the beginning, accepts same arguments as `concat`
+    // Prepends more configs at the beginning, accepts the same arguments as `concat`
   )
   .insertAfter(
     'config-name', // specify the name of the target config, or index
-    // insert more configs after the target, accepts same arguments as `concat`
+    // Inserts more configs after the target, accepts same arguments as `concat`
   )
   .renamePlugins({
-    // rename plugins
+    // Rename plugins
     'old-name': 'new-name',
-    // for example, rename `n` from `eslint-plugin-n` to more a explicit prefix `node`
+    // For example, rename `n` from `eslint-plugin-n` to the more explicit prefix `node`
     'n': 'node'
-    // applies to all plugins and rules in the configs
+    // Applies to all plugins and rules in the configs
   })
   .override(
-    'config-name', // specify the name of the target config, or index
+    'config-name', // Specify the name of the target config, or its index
     {
-      // merge with the target config
+      // Merge with the target config
       rules: {
         'no-console': 'off'
       },
@@ -101,7 +101,7 @@ export default composer(
 
 ##### `composer.renamePlugins`
 
-This helper renames plugins in all configurations in the composer. It is useful when you want to enforce a plugin to a custom name:
+This helper renames plugins in all configurations in the composer. It is useful when you want to assign a plugin to a custom name:
 
 ```ts
 const config = await composer([
@@ -151,7 +151,7 @@ const config = await composer([
 
 ##### `composer.disableRulesFix`
 
-This helper **hijack** plugins to make fixable rules non-fixable, useful when you want to disable auto-fixing for some rules but still keep them enabled.
+This helper **hijacks** plugins to make fixable rules non-fixable, useful when you want to disable auto-fixing for some rules but still keep them enabled.
 
 For example, if we want the rule to error when we use `let` on a const, but we don't want auto-fix to change it to `const` automatically:
 
@@ -173,14 +173,14 @@ const config = await composer([
       'unused-imports/no-unused-imports',
     ],
     {
-      // this is required only when patching core rules like `prefer-const` (rules without a plugin prefix)
+      // This is required only when patching core rules like `prefer-const` (rules without a plugin prefix)
       builtinRules: () => import('eslint/use-at-your-own-risk').then(r => r.builtinRules),
     },
   )
 ```
 
 > [!NOTE]
-> This function **mutate** the plugin object which will affect all the references to the plugin object globally. The changes are not reversible in the current runtime.
+> This function **mutates** the plugin object, which will affect all the references to the plugin object globally. The changes are not reversible in the current runtime.
 
 ### `extend`
 
