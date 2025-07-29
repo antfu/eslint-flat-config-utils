@@ -18,13 +18,13 @@ export function hijackPluginRule(
   return plugin
 }
 
-const FLAG_DISABLE_FIXES = '__eslint-flat-config-utils-disable-fixes__'
+const disabledRuleFixes = new WeakSet<Rule.RuleModule>()
 
 /**
  * Hijack into a rule's `context.report` to disable fixes.
  */
 export function disableRuleFixes(rule: Rule.RuleModule): Rule.RuleModule {
-  if ((rule as any)[FLAG_DISABLE_FIXES]) {
+  if (disabledRuleFixes.has(rule)) {
     return rule
   }
   const originalCreate = rule.create.bind(rule)
@@ -49,8 +49,9 @@ export function disableRuleFixes(rule: Rule.RuleModule): Rule.RuleModule {
         return Reflect.set(context, prop, value, receiver)
       },
     })
-    Object.defineProperty(proxiedContext, FLAG_DISABLE_FIXES, { value: true, enumerable: false })
-    return originalCreate(proxiedContext)
+    const proxy = originalCreate(proxiedContext)
+    return proxy
   }
+  disabledRuleFixes.add(rule)
   return rule
 }
