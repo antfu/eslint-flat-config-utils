@@ -19,10 +19,10 @@ export type PluginConflictsError<T extends Linter.Config = Linter.Config> = (
 /**
  * Awaitable array of ESLint flat configs or a composer object.
  */
-export type ResolvableFlatConfig<T extends Linter.Config = Linter.Config> =
-  | Awaitable<Arrayable<(T | false | undefined | null)>>
-  | Awaitable<(Linter.Config | false | undefined | null)[]>
-  | FlatConfigComposer<any>
+export type ResolvableFlatConfig<T extends Linter.Config = Linter.Config>
+  = | Awaitable<Arrayable<(T | false | undefined | null)>>
+    | Awaitable<(Linter.Config | false | undefined | null)[]>
+    | FlatConfigComposer<any>
 
 /**
  * Create a chainable composer object that makes manipulating ESLint flat config easier.
