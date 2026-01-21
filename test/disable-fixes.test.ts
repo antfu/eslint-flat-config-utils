@@ -53,9 +53,25 @@ it('for 3rd party plugins', async () => {
             "line": 1,
             "message": "'foo' is defined but never used.",
             "messageId": "unusedVar",
-            "nodeType": null,
+            "nodeType": "Identifier",
             "ruleId": "unused-imports/no-unused-imports",
             "severity": 2,
+            "suggestions": [
+              {
+                "data": {
+                  "varName": "foo",
+                },
+                "desc": "Remove unused variable "foo".",
+                "fix": {
+                  "range": [
+                    9,
+                    13,
+                  ],
+                  "text": "",
+                },
+                "messageId": "removeUnusedVar",
+              },
+            ],
           },
         ],
         "output": "import { foo, bar } from "bar"
