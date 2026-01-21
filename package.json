@@ -1,7 +1,7 @@
 {
   "name": "eslint-flat-config-utils",
   "type": "module",
-  "version": "2.1.4",
+  "version": "3.0.0",
   "packageManager": "pnpm@10.28.1",
   "description": "Utils for managing and manipulating ESLint flat config arrays",
   "author": "Anthony Fu <anthonyfu117@hotmail.com>",
