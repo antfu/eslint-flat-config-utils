@@ -99,6 +99,9 @@ export default composer(
 // And you can directly return the composer object to `eslint.config.mjs`
 ```
 
+> [!NOTE]
+> From version `3.0.0`, the `composer` function also expands the configs with [`defineConfig` from `eslint/config` which supports `extends` property](https://eslint.org/blog/2025/03/flat-config-extends-define-config-global-ignores/#bringing-back-extends).
+
 ##### `composer.renamePlugins`
 
 This helper renames plugins in all configurations in the composer. It is useful when you want to enforce a plugin to a custom name:
