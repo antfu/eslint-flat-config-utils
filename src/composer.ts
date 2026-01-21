@@ -1,5 +1,7 @@
+import type { ConfigWithExtendsArray } from '@eslint/config-helpers'
 import type { Linter, Rule } from 'eslint'
 import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
+import { defineConfig } from '@eslint/config-helpers'
 import { disableRuleFixes, hijackPluginRule } from './hijack'
 import { mergeConfigs } from './merge'
 import { parseRuleId } from './parse'
@@ -13,14 +15,15 @@ export interface DisableFixesOptions {
 
 export type PluginConflictsError<T extends Linter.Config = Linter.Config> = (
   pluginName: string,
-  configs: T[]
+  configs: T[],
 ) => string
 
 /**
  * Awaitable array of ESLint flat configs or a composer object.
  */
-export type ResolvableFlatConfig<T extends Linter.Config = Linter.Config>
+export type ResolvableFlatConfig<T extends object = ConfigWithExtendsArray>
   = | Awaitable<Arrayable<(T | false | undefined | null)>>
+    | Awaitable<(ConfigWithExtendsArray | false | undefined | null)[]>
     | Awaitable<(Linter.Config | false | undefined | null)[]>
     | FlatConfigComposer<any>
 
@@ -71,11 +74,11 @@ export type ResolvableFlatConfig<T extends Linter.Config = Linter.Config>
  * ```
  */
 export function composer<
-  T extends Linter.Config = Linter.Config,
+  T extends ConfigWithExtendsArray = ConfigWithExtendsArray,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
 >(
-  ...configs: ResolvableFlatConfig<Linter.Config extends T ? T : Linter.Config>[]
-): FlatConfigComposer<Linter.Config extends T ? T : Linter.Config, ConfigNames> {
+  ...configs: ResolvableFlatConfig<ConfigWithExtendsArray extends T ? T : ConfigWithExtendsArray>[]
+): FlatConfigComposer<ConfigWithExtendsArray extends T ? T : ConfigWithExtendsArray, ConfigNames> {
   return new FlatConfigComposer(
     ...configs,
   )
@@ -85,9 +88,9 @@ export function composer<
  * The underlying impolementation of `composer()`.
  */
 export class FlatConfigComposer<
-  T extends object = Linter.Config,
+  T extends object = ConfigWithExtendsArray,
   ConfigNames extends string = keyof DefaultConfigNamesMap,
-> extends Promise<T[]> {
+> extends Promise<Linter.Config[]> {
   private _operations: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
@@ -405,7 +408,7 @@ export class FlatConfigComposer<
     return this
   }
 
-  private _verifyPluginsConflicts(configs: T[]): void {
+  private _verifyPluginsConflicts(configs: Linter.Config[]): void {
     if (!this._pluginsConflictsError.size)
       return
 
@@ -416,7 +419,7 @@ export class FlatConfigComposer<
 
     const names = new Set<string>()
 
-    for (const config of configs as Linter.Config[]) {
+    for (const config of configs) {
       if (!config.plugins)
         continue
 
@@ -491,7 +494,7 @@ export class FlatConfigComposer<
    *
    * This returns a promise. Calling `.then()` has the same effect.
    */
-  public async toConfigs(): Promise<T[]> {
+  public async toConfigs(): Promise<Linter.Config[]> {
     let configs: T[] = []
     for (const promise of this._operations)
       configs = await promise(configs)
@@ -503,13 +506,15 @@ export class FlatConfigComposer<
     for (const promise of this._operationsResolved)
       configs = await promise(configs) || configs
 
-    this._verifyPluginsConflicts(configs)
+    const resolved: Linter.Config[] = configs.flatMap(config => defineConfig(config))
 
-    return configs
+    this._verifyPluginsConflicts(resolved)
+
+    return resolved
   }
 
   // eslint-disable-next-line ts/explicit-function-return-type
-  then(onFulfilled: (value: T[]) => any, onRejected?: (reason: any) => any) {
+  then(onFulfilled: (value: Linter.Config[]) => any, onRejected?: (reason: any) => any) {
     return this.toConfigs()
       .then(onFulfilled, onRejected)
   }
