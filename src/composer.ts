@@ -7,6 +7,8 @@ import { mergeConfigs } from './merge'
 import { parseRuleId } from './parse'
 import { renamePluginsInConfigs } from './rename'
 
+export { ConfigWithExtends }
+
 export const DEFAULT_PLUGIN_CONFLICTS_ERROR = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.'
 
 export interface DisableFixesOptions {
