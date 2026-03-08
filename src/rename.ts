@@ -1,5 +1,6 @@
 import type { Plugin } from '@eslint/config-helpers'
 import type { Linter } from 'eslint'
+import { mergePlugins } from './merge'
 
 /**
  * Rename plugin prefixes in a rule object.
@@ -35,6 +36,20 @@ export function renamePluginsInRules(rules: Record<string, any>, map: Record<str
 }
 
 /**
+ * The options for `renamePluginsInConfigs`
+ */
+export interface RenamePluginsInConfigsOptions {
+  /**
+   * Resolve conflicts by merging plugins.
+   *
+   * Note there is no guarantee that the result works the same as the original configs.
+   *
+   * @default false
+   */
+  mergePlugins?: boolean
+}
+
+/**
  * Rename plugin names a flat configs array
  *
  * @example
@@ -48,7 +63,7 @@ export function renamePluginsInRules(rules: Record<string, any>, map: Record<str
  * })
  * ```
  */
-export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(configs: T[], map: Record<string, string>): T[] {
+export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(configs: T[], map: Record<string, string>, options?: RenamePluginsInConfigsOptions): T[] {
   return configs.map((i) => {
     const clone = { ...i }
     if (clone.rules)
@@ -60,11 +75,20 @@ export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(
             return [map[key], value]
           return [key, value]
         })
-      for (const [key, values] of Object.entries(Object.groupBy(renamed, ([key]) => key))) {
-        if (values!.length > 1)
-          console.warn(`ESLintFlatConfigUtils: Trying to rename multiple plugins to the name "${key}", using the last one`)
-      }
-      clone.plugins = Object.fromEntries(renamed)
+
+      const grouped = Object.groupBy(renamed, entry => entry[0])
+      const shouldMerge = options?.mergePlugins ?? false
+
+      clone.plugins = Object.fromEntries(
+        Object.entries(grouped).map(([key, values]) => {
+          if (shouldMerge)
+            return [key, mergePlugins(...values!.map(entry => entry[1]))!]
+
+          if (values!.length > 1)
+            console.warn(`ESLintFlatConfigUtils: Trying to rename multiple plugins to the name "${key}", using the last one`)
+          return values!.at(-1)!
+        }),
+      )
     }
     return clone
   })

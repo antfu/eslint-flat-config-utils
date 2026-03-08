@@ -374,3 +374,57 @@ it('replace plugin', async () => {
     ]
   `)
 })
+
+it('merge plugins', async () => {
+  const p = composer([{
+    name: 'init',
+    plugins: {
+      foo: {
+        meta: {
+          name: 'foo',
+        },
+        rules: {
+          a: {} as any,
+        },
+      },
+      bar: {
+        meta: {
+          name: 'bar',
+        },
+        rules: {
+          b: {} as any,
+        },
+      },
+    },
+    rules: {
+      'foo/a': 'error',
+      'bar/b': 'error',
+    },
+  }])
+    .renamePlugins(
+      { foo: 'baz', bar: 'baz' },
+      { mergePlugins: true },
+    )
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "plugins": {
+          "baz": {
+            "meta": {
+              "name": "merged plugin of [foo, bar]",
+            },
+            "rules": {
+              "a": {},
+              "b": {},
+            },
+          },
+        },
+        "rules": {
+          "baz/a": "error",
+          "baz/b": "error",
+        },
+      },
+    ]
+  `)
+})

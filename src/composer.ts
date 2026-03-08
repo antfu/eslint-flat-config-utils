@@ -1,5 +1,6 @@
 import type { ConfigWithExtends, Plugin } from '@eslint/config-helpers'
 import type { Linter, Rule } from 'eslint'
+import type { RenamePluginsInConfigsOptions } from './rename'
 import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
 import { defineConfig } from '@eslint/config-helpers'
 import { disableRuleFixes, hijackPluginRule } from './hijack'
@@ -102,6 +103,7 @@ export class FlatConfigComposer<
   private _operationsOverrides: ((items: T[]) => Promise<T[]>)[] = []
   private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
   private _renames: Record<string, string> = {}
+  private _renamesOptions: RenamePluginsInConfigsOptions | undefined
   private _pluginsConflictsError = new Map<string, string | PluginConflictsError>()
 
   constructor(
@@ -118,8 +120,9 @@ export class FlatConfigComposer<
    *
    * This will runs after all config items are resolved. Applies to `plugins` and `rules`.
    */
-  public renamePlugins(renames: Record<string, string>): this {
+  public renamePlugins(renames: Record<string, string>, options?: RenamePluginsInConfigsOptions): this {
     Object.assign(this._renames, renames)
+    this._renamesOptions = options
     return this
   }
 
@@ -529,6 +532,7 @@ export class FlatConfigComposer<
     composer._operationsOverrides = this._operationsOverrides.slice()
     composer._operationsResolved = this._operationsResolved.slice()
     composer._renames = { ...this._renames }
+    composer._renamesOptions = this._renamesOptions
     composer._pluginsConflictsError = new Map(this._pluginsConflictsError)
     return composer
   }
@@ -545,7 +549,7 @@ export class FlatConfigComposer<
     for (const promise of this._operationsOverrides)
       configs = await promise(configs)
 
-    configs = renamePluginsInConfigs(configs, this._renames) as T[]
+    configs = renamePluginsInConfigs(configs, this._renames, this._renamesOptions) as T[]
 
     for (const promise of this._operationsResolved)
       configs = await promise(configs) || configs
