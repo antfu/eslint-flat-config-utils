@@ -7,6 +7,11 @@ import { mergeConfigs } from './merge'
 import { parseRuleId } from './parse'
 import { renamePluginsInConfigs } from './rename'
 
+const RE_PLUGIN_NAME = /\{\{pluginName\}\}/g
+const RE_CONFIG_NAME1 = /\{\{configName1\}\}/g
+const RE_CONFIG_NAME2 = /\{\{configName2\}\}/g
+const RE_CONFIG_NAMES = /\{\{configNames\}\}/g
+
 export { ConfigWithExtends }
 
 export const DEFAULT_PLUGIN_CONFLICTS_ERROR = 'Different instances of plugin "{{pluginName}}" found in multiple configs: {{configNames}}. It\'s likely you misconfigured the merge of these configs.'
@@ -452,10 +457,10 @@ export class FlatConfigComposer<
       else if (message) {
         errors.push(
           message
-            .replace(/\{\{pluginName\}\}/g, name)
-            .replace(/\{\{configName1\}\}/g, getConfigName(configsOfName[0]))
-            .replace(/\{\{configName2\}\}/g, getConfigName(configsOfName[1]))
-            .replace(/\{\{configNames\}\}/g, configsOfName.map(getConfigName).join(', ')),
+            .replace(RE_PLUGIN_NAME, name)
+            .replace(RE_CONFIG_NAME1, getConfigName(configsOfName[0]))
+            .replace(RE_CONFIG_NAME2, getConfigName(configsOfName[1]))
+            .replace(RE_CONFIG_NAMES, configsOfName.map(getConfigName).join(', ')),
         )
       }
     }
