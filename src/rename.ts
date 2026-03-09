@@ -19,10 +19,12 @@ import type { Linter } from 'eslint'
  * ```
  */
 export function renamePluginsInRules(rules: Record<string, any>, map: Record<string, string>): Record<string, any> {
+  const entries = Object.entries(map).sort(([a], [b]) => b.length - a.length)
+
   return Object.fromEntries(
     Object.entries(rules)
       .map(([key, value]) => {
-        for (const [from, to] of Object.entries(map)) {
+        for (const [from, to] of entries) {
           if (key.startsWith(`${from}/`))
             return [to + key.slice(from.length), value]
         }
