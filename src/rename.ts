@@ -1,3 +1,4 @@
+import type { Plugin } from '@eslint/config-helpers'
 import type { Linter } from 'eslint'
 
 /**
@@ -53,14 +54,17 @@ export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(
     if (clone.rules)
       clone.rules = renamePluginsInRules(clone.rules, map)
     if (clone.plugins) {
-      clone.plugins = Object.fromEntries(
-        Object.entries(clone.plugins)
-          .map(([key, value]) => {
-            if (key in map)
-              return [map[key], value]
-            return [key, value]
-          }),
-      )
+      const renamed: [string, Plugin][] = Object.entries(clone.plugins)
+        .map(([key, value]) => {
+          if (key in map)
+            return [map[key], value]
+          return [key, value]
+        })
+      for (const [key, values] of Object.entries(Object.groupBy(renamed, ([key]) => key))) {
+        if (values!.length > 1)
+          console.warn(`ESLintFlatConfigUtils: Trying to rename multiple plugins to the name "${key}", using the last one`)
+      }
+      clone.plugins = Object.fromEntries(renamed)
     }
     return clone
   })
