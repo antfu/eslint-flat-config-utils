@@ -1,4 +1,4 @@
-import type { ConfigWithExtends } from '@eslint/config-helpers'
+import type { ConfigWithExtends, Plugin } from '@eslint/config-helpers'
 import type { Linter, Rule } from 'eslint'
 import type { Arrayable, Awaitable, DefaultConfigNamesMap, FilterType, GetRuleRecordFromConfig, NullableObject, StringLiteralUnion } from './types'
 import { defineConfig } from '@eslint/config-helpers'
@@ -319,6 +319,43 @@ export class FlatConfigComposer<
     this._operations.push(async (configs) => {
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index, 1)
+      return configs
+    })
+    return this
+  }
+
+  /**
+   * Replace a plugin with another.
+   *
+   * @example
+   * ```ts
+   * composer
+   *   .replacePlugin('foo', (fooPlugin) => ({
+   *     ...fooPlugin,
+   *     rules: {
+   *       ...fooPlugin.rules,
+   *       someNewRule,
+   *     },
+   *   }))
+   * ```
+   *
+   * The `plugins: { foo }` will be replaced from all configs with a new plugin that is a merge of it and the `bar` plugin
+   */
+  public replacePlugin(
+    name: string,
+    replacement: Awaitable<Plugin> | ((original: Plugin) => Awaitable<Plugin>),
+  ): this {
+    this._operationsOverrides.push(async (configs) => {
+      for (const config of configs) {
+        if ('plugins' in config && typeof config.plugins === 'object' && config.plugins) {
+          if (name in config.plugins) {
+            const value = typeof replacement === 'function'
+              ? replacement((config.plugins as any)[name])
+              : replacement;
+            (config.plugins as any)[name] = await value
+          }
+        }
+      }
       return configs
     })
     return this

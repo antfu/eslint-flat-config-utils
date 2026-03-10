@@ -321,3 +321,56 @@ describe('error', () => {
     `)
   })
 })
+
+it('replace plugin', async () => {
+  const p = composer([{
+    name: 'init',
+    plugins: {
+      foo: {
+        rules: {
+          a: {} as any,
+        },
+      },
+      bar: {
+        rules: {
+          b: {} as any,
+        },
+      },
+    },
+    rules: {
+      'foo/a': 'error',
+      'bar/b': 'error',
+    },
+  }])
+    .replacePlugin('foo', foo => ({
+      ...foo,
+      rules: {
+        ...foo.rules,
+        c: {} as any,
+      },
+    }))
+  expect(await p).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "plugins": {
+          "bar": {
+            "rules": {
+              "b": {},
+            },
+          },
+          "foo": {
+            "rules": {
+              "a": {},
+              "c": {},
+            },
+          },
+        },
+        "rules": {
+          "bar/b": "error",
+          "foo/a": "error",
+        },
+      },
+    ]
+  `)
+})
