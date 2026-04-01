@@ -315,7 +315,7 @@ export class FlatConfigComposer<
   /**
    * Remove a specific config by name or index.
    */
-  public remove(nameOrIndex: ConfigNames | string | number): this {
+  public remove(nameOrIndex: StringLiteralUnion<ConfigNames, string | number>): this {
     this._operations.push(async (configs) => {
       const index = getConfigIndex(configs, nameOrIndex)
       configs.splice(index, 1)
