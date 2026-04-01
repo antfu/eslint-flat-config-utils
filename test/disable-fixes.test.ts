@@ -53,7 +53,6 @@ it('for 3rd party plugins', async () => {
             "line": 1,
             "message": "'foo' is defined but never used.",
             "messageId": "unusedVar",
-            "nodeType": "Identifier",
             "ruleId": "unused-imports/no-unused-imports",
             "severity": 2,
             "suggestions": [
@@ -135,7 +134,6 @@ it('for builtin plugins', async () => {
             "line": 1,
             "message": "'foo' is never reassigned. Use 'const' instead.",
             "messageId": "useConst",
-            "nodeType": "Identifier",
             "ruleId": "prefer-const",
             "severity": 2,
           },
