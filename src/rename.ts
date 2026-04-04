@@ -76,17 +76,25 @@ export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(
           return [key, value]
         })
 
-      const grouped = Object.groupBy(renamed, entry => entry[0])
+      // use Object.groupBy Node 20 is EOL (2026-04-30, see https://github.com/antfu/eslint-flat-config-utils/pull/12)
+      const grouped = renamed.reduce<Record<string, [string, Plugin][]>>((acc, entry) => {
+        const k = entry[0]
+        if (!acc[k])
+          acc[k] = []
+        acc[k].push(entry)
+        return acc
+      }, {})
+
       const shouldMerge = options?.mergePlugins ?? false
 
       clone.plugins = Object.fromEntries(
         Object.entries(grouped).map(([key, values]) => {
           if (shouldMerge)
-            return [key, mergePlugins(...values!.map(entry => entry[1]))!]
+            return [key, mergePlugins(...values.map(entry => entry[1]))!]
 
-          if (values!.length > 1)
+          if (values.length > 1)
             console.warn(`ESLintFlatConfigUtils: Trying to rename multiple plugins to the name "${key}", using the last one`)
-          return values!.at(-1)!
+          return values.at(-1)!
         }),
       )
     }
