@@ -428,3 +428,137 @@ it('merge plugins', async () => {
     ]
   `)
 })
+
+describe('setDefaultIgnores', () => {
+  it('adds default ignores to unscoped rule configs', async () => {
+    const p = composer([
+      { name: 'global', rules: { 'no-irregular-whitespace': 'error' } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toEqual(['**/*.md'])
+  })
+
+  it('skips configs with explicit files', async () => {
+    const p = composer([
+      { name: 'scoped', files: ['**/*.ts'], rules: { 'no-console': 'error' } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toBeUndefined()
+    expect(config.files).toEqual(['**/*.ts'])
+  })
+
+  it('skips configs explicitly targeting the excluded globs', async () => {
+    const p = composer([
+      { name: 'md', files: ['**/*.md'], rules: { 'markdown/heading-increment': 'error' } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toBeUndefined()
+    expect(config.files).toEqual(['**/*.md'])
+  })
+
+  it('skips configs without rules', async () => {
+    const p = composer([
+      { name: 'plugins-only', plugins: { foo: {} as any } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toBeUndefined()
+  })
+
+  it('skips configs with empty rules', async () => {
+    const p = composer([
+      { name: 'empty-rules', rules: {} },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toBeUndefined()
+  })
+
+  it('skips configs with explicit ignores', async () => {
+    const p = composer([
+      { name: 'pre-ignored', ignores: ['dist/**'], rules: { 'no-console': 'error' } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toEqual(['dist/**'])
+  })
+
+  it('skips configs with language', async () => {
+    const p = composer([
+      { name: 'md-lang', language: 'markdown/gfm', rules: { 'markdown/heading-increment': 'error' } } as any,
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+    const [config] = await p
+    expect(config.ignores).toBeUndefined()
+  })
+
+  it('composes additively across multiple calls', async () => {
+    const p = composer([
+      { name: 'global', rules: { 'no-console': 'error' } },
+    ])
+      .setDefaultIgnores(() => ['**/*.md'])
+      .setDefaultIgnores(prev => [...prev, '**/*.json'])
+    const [config] = await p
+    expect(config.ignores).toEqual(['**/*.md', '**/*.json'])
+  })
+
+  it('preserves accumulated globs through clone', async () => {
+    const original = composer()
+      .setDefaultIgnores(() => ['**/*.md'])
+    const cloned = original.clone()
+      .append({ name: 'global', rules: { 'no-console': 'error' } })
+    const [config] = await cloned
+    expect(config.ignores).toEqual(['**/*.md'])
+  })
+})
+
+describe('sub-composer absorption', () => {
+  it('absorbs setDefaultIgnores from appended composer', async () => {
+    const child = composer()
+      .setDefaultIgnores(() => ['**/*.md'])
+    const parent = composer([
+      { name: 'parent-global', rules: { 'no-console': 'error' } },
+    ])
+      .append(child)
+    const [config] = await parent
+    expect(config.ignores).toEqual(['**/*.md'])
+  })
+
+  it('absorbs renamePlugins from appended composer', async () => {
+    const child = composer()
+      .renamePlugins({ n: 'node' })
+    const parent = composer([
+      { name: 'parent', plugins: { n: {} as any }, rules: { 'n/no-deprecated-api': 'error' } },
+    ])
+      .append(child)
+    const [config] = await parent
+    expect(Object.keys(config.plugins!)).toEqual(['node'])
+    expect(Object.keys(config.rules!)).toEqual(['node/no-deprecated-api'])
+  })
+
+  it('parent renames win over absorbed child renames regardless of order', async () => {
+    const child = composer()
+      .renamePlugins({ n: 'node' })
+
+    const parentA = composer([
+      { name: 'a', plugins: { n: {} as any }, rules: { 'n/x': 'error' } },
+    ])
+      .renamePlugins({ n: 'newer-node' })
+      .append(child)
+    const [a] = await parentA
+    expect(Object.keys(a.plugins!)).toEqual(['newer-node'])
+    expect(Object.keys(a.rules!)).toEqual(['newer-node/x'])
+
+    const parentB = composer([
+      { name: 'b', plugins: { n: {} as any }, rules: { 'n/x': 'error' } },
+    ])
+      .append(child)
+      .renamePlugins({ n: 'newer-node' })
+    const [b] = await parentB
+    expect(Object.keys(b.plugins!)).toEqual(['newer-node'])
+    expect(Object.keys(b.rules!)).toEqual(['newer-node/x'])
+  })
+})

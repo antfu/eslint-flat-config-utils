@@ -185,6 +185,27 @@ const config = await composer([
 > [!NOTE]
 > This function **mutate** the plugin object which will affect all the references to the plugin object globally. The changes are not reversible in the current runtime.
 
+##### `composer.setDefaultIgnores`
+
+Sets default `ignores` globs for configs that have rules but no explicit scoping (`files`, `ignores`, or `language`). Useful when mixing fundamentally different languages (e.g. JS + Markdown) and you want global rule configs to not "leak" into a foreign language whose `SourceCode` lacks JS-only methods.
+
+The callback receives the composer's previously-accumulated globs and returns the new list, so calls compose:
+
+```ts
+const config = await composer([
+  // gains `ignores: ['**/*.md']`
+  { rules: { 'no-irregular-whitespace': 'error' } },
+  // explicit `files`, untouched
+  { files: ['**/*.md'], rules: { 'markdown/heading-increment': 'error' } },
+])
+  .setDefaultIgnores(() => ['**/*.md'])
+  .setDefaultIgnores(prev => [...prev, '**/*.json']) // additive
+```
+
+Configs without rules (`plugins`-only, `languageOptions`-only, setup blocks) are left as-is. Configs already scoped (with `files`, `ignores`, or `language` set) are also left as-is.
+
+When a sub-composer is appended into another via `append`/`prepend`/`insertBefore`/`insertAfter`/`replace`, the parent absorbs the child's accumulated globs at append time — so a default-ignores declared on the inner composer also protects the parent's other unscoped configs.
+
 ### `extend`
 
 Extend another flat config from a different root, and rewrite the glob paths accordingly:

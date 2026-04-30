@@ -104,6 +104,7 @@ export class FlatConfigComposer<
   private _operationsResolved: ((items: T[]) => Awaitable<T[] | void>)[] = []
   private _renames: Record<string, string> = {}
   private _renamesOptions: RenamePluginsInConfigsOptions | undefined
+  private _defaultIgnores: string[] = []
   private _pluginsConflictsError = new Map<string, string | PluginConflictsError>()
 
   constructor(
@@ -127,9 +128,47 @@ export class FlatConfigComposer<
   }
 
   /**
+   * Set default `ignores` globs for configs that have rules but no explicit
+   * scoping (`files` / `ignores` / `language`).
+   *
+   * The callback receives the composer's previously-accumulated globs and
+   * returns the new list, so calls compose:
+   *
+   * ```ts
+   * composer
+   *   .setDefaultIgnores(() => ['**\/*.md'])
+   *   .setDefaultIgnores(prev => [...prev, '**\/*.json'])
+   * ```
+   *
+   * Useful when mixing fundamentally different languages (e.g. JS + Markdown)
+   * and you want global rule configs to not "leak" into a foreign language
+   * whose `SourceCode` lacks JS-only methods.
+   */
+  public setDefaultIgnores(fn: (globs: string[]) => string[]): this {
+    this._defaultIgnores = fn(this._defaultIgnores)
+    return this
+  }
+
+  /**
+   * Absorb another composer's accumulated state when it is appended/prepended/etc.
+   * into this one, so renames and default-ignores globs declared on the inner
+   * composer apply to the parent's other configs as well.
+   */
+  private _absorbComposer(other: FlatConfigComposer<any>): void {
+    this._renames = { ...other._renames, ...this._renames }
+    if (!this._renamesOptions && other._renamesOptions)
+      this._renamesOptions = other._renamesOptions
+    this._defaultIgnores = [...new Set([...this._defaultIgnores, ...other._defaultIgnores])]
+  }
+
+  /**
    * Append configs to the end of the current configs array.
    */
   public append(...items: ResolvableFlatConfig<T>[]): this {
+    for (const item of items) {
+      if (item instanceof FlatConfigComposer)
+        this._absorbComposer(item)
+    }
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat().filter(Boolean) as T[]
@@ -142,6 +181,10 @@ export class FlatConfigComposer<
    * Prepend configs to the beginning of the current configs array.
    */
   public prepend(...items: ResolvableFlatConfig<T>[]): this {
+    for (const item of items) {
+      if (item instanceof FlatConfigComposer)
+        this._absorbComposer(item)
+    }
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat().filter(Boolean) as T[]
@@ -157,6 +200,10 @@ export class FlatConfigComposer<
     nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
+    for (const item of items) {
+      if (item instanceof FlatConfigComposer)
+        this._absorbComposer(item)
+    }
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat().filter(Boolean) as T[]
@@ -174,6 +221,10 @@ export class FlatConfigComposer<
     nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
+    for (const item of items) {
+      if (item instanceof FlatConfigComposer)
+        this._absorbComposer(item)
+    }
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat().filter(Boolean) as T[]
@@ -373,6 +424,10 @@ export class FlatConfigComposer<
     nameOrIndex: StringLiteralUnion<ConfigNames, string | number>,
     ...items: ResolvableFlatConfig<T>[]
   ): this {
+    for (const item of items) {
+      if (item instanceof FlatConfigComposer)
+        this._absorbComposer(item)
+    }
     const promise = Promise.all(items)
     this._operations.push(async (configs) => {
       const resolved = (await promise).flat().filter(Boolean) as T[]
@@ -533,6 +588,7 @@ export class FlatConfigComposer<
     composer._operationsResolved = this._operationsResolved.slice()
     composer._renames = { ...this._renames }
     composer._renamesOptions = this._renamesOptions
+    composer._defaultIgnores = this._defaultIgnores.slice()
     composer._pluginsConflictsError = new Map(this._pluginsConflictsError)
     return composer
   }
@@ -550,6 +606,20 @@ export class FlatConfigComposer<
       configs = await promise(configs)
 
     configs = renamePluginsInConfigs(configs, this._renames, this._renamesOptions) as T[]
+
+    if (this._defaultIgnores.length) {
+      for (const config of configs as Linter.Config[]) {
+        if (!config.rules || Object.keys(config.rules).length === 0)
+          continue
+        if (config.files)
+          continue
+        if (config.ignores)
+          continue
+        if ((config as any).language)
+          continue
+        config.ignores = [...this._defaultIgnores]
+      }
+    }
 
     for (const promise of this._operationsResolved)
       configs = await promise(configs) || configs
