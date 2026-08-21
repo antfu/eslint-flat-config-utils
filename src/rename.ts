@@ -71,8 +71,32 @@ export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(
     if (clone.plugins) {
       const renamed: [string, Plugin][] = Object.entries(clone.plugins)
         .map(([key, value]) => {
-          if (key in map)
-            return [map[key], value]
+          if (key in map) {
+            const target = map[key]
+            const slashIndex = target.startsWith('@')
+              ? -1
+              : target.indexOf('/')
+
+            if (slashIndex === -1)
+              return [target, value]
+
+            const pluginName = target.slice(0, slashIndex)
+            const subPrefix = target.slice(slashIndex + 1)
+
+            const plugin = subPrefix && value?.rules
+              ? {
+                  ...value,
+                  rules: Object.fromEntries(
+                    Object.entries(value.rules).map(([ruleName, ruleDef]) => [
+                      `${subPrefix}/${ruleName}`,
+                      ruleDef,
+                    ]),
+                  ),
+                }
+              : value
+
+            return [pluginName, plugin]
+          }
           return [key, value]
         })
 

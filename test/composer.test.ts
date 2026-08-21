@@ -427,6 +427,92 @@ it('merge plugins', async () => {
       },
     ]
   `)
+
+  const p2 = composer([{
+    name: 'init',
+    plugins: {
+      'ts': {
+        meta: { name: 'ts' },
+        rules: {
+          'no-explicit-any': {} as any,
+        },
+      },
+      'erasable-syntax-only': {
+        meta: { name: 'erasable-syntax-only' },
+        rules: {
+          enums: {} as any,
+        },
+      },
+    },
+    rules: {
+      'ts/no-explicit-any': 'error',
+      'erasable-syntax-only/enums': 'error',
+    },
+  }])
+    .renamePlugins(
+      { 'erasable-syntax-only': 'ts/erasable-syntax' },
+      { mergePlugins: true },
+    )
+  expect(await p2).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "plugins": {
+          "ts": {
+            "meta": {
+              "name": "merged plugin of [ts, erasable-syntax-only]",
+            },
+            "rules": {
+              "erasable-syntax/enums": {},
+              "no-explicit-any": {},
+            },
+          },
+        },
+        "rules": {
+          "ts/erasable-syntax/enums": "error",
+          "ts/no-explicit-any": "error",
+        },
+      },
+    ]
+  `)
+
+  const p3 = composer([{
+    name: 'init',
+    plugins: {
+      'erasable-syntax-only': {
+        meta: { name: 'erasable-syntax-only' },
+        rules: {
+          enums: {} as any,
+        },
+      },
+    },
+    rules: {
+      'erasable-syntax-only/enums': 'error',
+    },
+  }])
+    .renamePlugins({
+      'erasable-syntax-only': 'ts/erasable-syntax',
+    })
+  expect(await p3).toMatchInlineSnapshot(`
+    [
+      {
+        "name": "init",
+        "plugins": {
+          "ts": {
+            "meta": {
+              "name": "erasable-syntax-only",
+            },
+            "rules": {
+              "erasable-syntax/enums": {},
+            },
+          },
+        },
+        "rules": {
+          "ts/erasable-syntax/enums": "error",
+        },
+      },
+    ]
+  `)
 })
 
 describe('setDefaultIgnores', () => {
