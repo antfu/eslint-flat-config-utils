@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { renamePluginsInRules } from '../src/rename'
+import { renamePluginsInConfigs, renamePluginsInRules } from '../src/rename'
 
 it('renames rules with shared plugin prefixes using the longest match first', () => {
   const renamed = renamePluginsInRules(
@@ -30,4 +30,25 @@ it('renames rules with shared plugin prefixes using the longest match first', ()
     'react-web-api/no-leaked-event-listener': 'error',
     'no-console': 'off',
   })
+})
+
+it('renames plugins in configs when Object.groupBy is unavailable', () => {
+  // Object.groupBy is only available since Node.js 21
+  // https://github.com/antfu/eslint-flat-config-utils/issues/11
+  const originalGroupBy = Object.groupBy
+  Object.groupBy = undefined as unknown as typeof Object.groupBy
+  try {
+    expect(renamePluginsInConfigs(
+      [{ plugins: { 'foo': {}, 'bar-baz': {} } }],
+      { 'bar-baz': 'bar' },
+    )).toEqual([{ plugins: { foo: {}, bar: {} } }])
+
+    expect(renamePluginsInConfigs(
+      [{ plugins: { a: {}, b: { meta: { name: 'b' } } } }],
+      { a: 'x', b: 'x' },
+    )).toEqual([{ plugins: { x: { meta: { name: 'b' } } } }])
+  }
+  finally {
+    Object.groupBy = originalGroupBy
+  }
 })
