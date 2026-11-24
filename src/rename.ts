@@ -76,17 +76,24 @@ export function renamePluginsInConfigs<T extends Linter.Config = Linter.Config>(
           return [key, value]
         })
 
-      const grouped = Object.groupBy(renamed, entry => entry[0])
+      const grouped = new Map<string, [string, Plugin][]>()
+      for (const entry of renamed) {
+        const list = grouped.get(entry[0])
+        if (list)
+          list.push(entry)
+        else
+          grouped.set(entry[0], [entry])
+      }
       const shouldMerge = options?.mergePlugins ?? false
 
       clone.plugins = Object.fromEntries(
-        Object.entries(grouped).map(([key, values]) => {
+        Array.from(grouped.entries()).map(([key, values]) => {
           if (shouldMerge)
-            return [key, mergePlugins(...values!.map(entry => entry[1]))!]
+            return [key, mergePlugins(...values.map(entry => entry[1]))!]
 
-          if (values!.length > 1)
+          if (values.length > 1)
             console.warn(`ESLintFlatConfigUtils: Trying to rename multiple plugins to the name "${key}", using the last one`)
-          return values!.at(-1)!
+          return values.at(-1)!
         }),
       )
     }
